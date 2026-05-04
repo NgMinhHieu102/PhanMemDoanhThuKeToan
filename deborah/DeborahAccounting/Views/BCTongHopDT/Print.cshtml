@@ -1,0 +1,19 @@
+@{ Layout = null; }
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"/><title>Báo cáo tổng hợp doanh thu</title>
+<style>body{font-family:'Times New Roman',serif;font-size:13px;margin:30px 50px;color:#000}.header-left{font-size:12px;margin-bottom:15px}h2{text-align:center;font-size:18px;margin:15px 0 5px;letter-spacing:2px;font-weight:bold}.info-center{text-align:center;font-size:13px;margin-bottom:2px}table.ct{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}table.ct th,table.ct td{border:1px solid #000;padding:4px 6px}table.ct th{background:#f0f0f0;text-align:center;font-weight:bold}table.ct td.num{text-align:right}.sign-section{display:flex;justify-content:space-between;margin-top:30px;text-align:center;font-size:12px}.sign-section div{width:30%}.sign-section .title{font-weight:bold}.sign-section .sub{font-style:italic;font-size:11px}.date-line{text-align:right;font-style:italic;font-size:12px;margin-top:15px}@@media print{body{margin:15px 30px}}</style></head><body>
+<div id="pc"></div>
+<script>
+var d=null;try{d=JSON.parse(localStorage.getItem('bcthdtData'))}catch(e){}
+if(!d){document.body.innerHTML='<p>Không có dữ liệu</p>'}else{render(d);window.print()}
+function render(d){
+var h='<div class="header-left"><b>Công ty Cổ phần Deborah (Deborah Home)</b><br/>Địa chỉ: Số 113 Điện Biên, Phường Cửa Bắc, Thành phố Nam Định, Tỉnh Nam Định<br/>Mã số thuế: 0601164325<br/>Điện thoại: 0363831464</div>';
+h+='<h2>BÁO CÁO TỔNG HỢP DOANH THU</h2>';
+h+='<div class="info-center">Từ ngày '+d.tuNgay+' đến ngày '+d.denNgay+'</div>';
+h+='<table class="ct"><thead><tr><th>Mã KH</th><th>Tên khách hàng</th><th>Doanh thu</th><th>Giảm trừ</th><th>Doanh thu thuần</th></tr></thead><tbody>';
+d.rows.forEach(function(r){h+='<tr><td>'+r.maKH+'</td><td>'+r.tenKH+'</td><td class="num">'+fmt(r.doanhThu)+'</td><td class="num">'+fmt(r.giamTru)+'</td><td class="num">'+fmt(r.doanhThuThuan)+'</td></tr>'});
+h+='</tbody></table>';
+h+='<div class="date-line">Ngày tháng năm</div>';
+h+='<div class="sign-section"><div><span class="title">Người lập báo cáo</span><br/><span class="sub">(Ký và ghi rõ họ tên)</span></div><div><span class="title">Kế toán trưởng</span><br/><span class="sub">(Ký và ghi rõ họ tên)</span></div><div><span class="title">Giám đốc</span><br/><span class="sub">(Ký và ghi rõ họ tên)</span></div></div>';
+document.getElementById('pc').innerHTML=h}
+function fmt(n){return n!=null?n.toLocaleString('vi-VN'):''}
+</script></body></html>

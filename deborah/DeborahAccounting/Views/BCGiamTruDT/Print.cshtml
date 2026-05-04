@@ -1,0 +1,19 @@
+@{ Layout = null; }
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"/><title>Báo cáo giảm trừ doanh thu</title>
+<style>body{font-family:'Times New Roman',serif;font-size:13px;margin:30px 50px;color:#000}.header{display:flex;justify-content:space-between;margin-bottom:10px}.header-left{width:55%;font-size:12px}.header-right{width:40%;text-align:right;font-size:11px;font-style:italic}h2{text-align:center;font-size:18px;margin:15px 0 5px;letter-spacing:2px;font-weight:bold}.info-center{text-align:center;font-size:13px;margin-bottom:2px}table.ct{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}table.ct th,table.ct td{border:1px solid #000;padding:4px 6px}table.ct th{background:#f0f0f0;text-align:center;font-weight:bold}table.ct td.num{text-align:right}.sign-section{display:flex;justify-content:space-between;margin-top:30px;text-align:center;font-size:12px}.sign-section div{width:30%}.sign-section .title{font-weight:bold}.sign-section .sub{font-style:italic;font-size:11px}@@media print{body{margin:15px 30px}}</style></head><body>
+<div id="pc"></div>
+<script>
+var d=null;try{d=JSON.parse(localStorage.getItem('bcgtdtData'))}catch(e){}
+if(!d){document.body.innerHTML='<p>Không có dữ liệu</p>'}else{render(d);window.print()}
+function render(d){
+var h='<div class="header"><div class="header-left"><b>Công ty Cổ phần Deborah (Deborah Home)</b><br/>Địa chỉ: Số 113 Điện Biên, Phường Cửa Bắc, Thành phố Nam Định, Nam Định<br/>Mã số thuế: 0601164235<br/>Điện thoại: 02286589999</div>';
+h+='<div class="header-right"><b>Mẫu số S35 - DN</b><br/><i>(Ban hành theo TT số 200/2014/TT-BTC<br/>ngày 22/12/2014 của Bộ trưởng BTC)</i></div></div>';
+h+='<h2>BÁO CÁO HÀNG BÁN BỊ TRẢ LẠI</h2>';
+h+='<div class="info-center">Từ ngày '+d.tuNgay+' đến ngày '+d.denNgay+'</div><div class="info-center" style="text-align:right">Tiền tệ: VNĐ</div>';
+h+='<table class="ct"><thead><tr><th>Mã KH</th><th>Tên khách hàng</th><th>Doanh thu<br/>bán hàng</th><th>Giảm trừ<br/>doanh thu</th><th>Doanh thu<br/>thuần</th></tr></thead><tbody>';
+d.rows.forEach(function(r){h+='<tr><td>'+r.maKH+'</td><td>'+r.tenKH+'</td><td class="num">'+fmt(r.doanhThu)+'</td><td class="num">'+fmt(r.giamTru)+'</td><td class="num">'+fmt(r.doanhThuThuan)+'</td></tr>'});
+h+='</tbody></table>';
+h+='<div class="sign-section"><div><span class="title">Người lập báo cáo</span><br/><span class="sub">(Ký và ghi rõ họ tên)</span></div><div><span class="title">Kế toán trưởng</span><br/><span class="sub">(Ký và ghi rõ họ tên)</span></div><div><span class="title">Giám đốc</span><br/><span class="sub">(Ký và ghi rõ họ tên)</span></div></div>';
+document.getElementById('pc').innerHTML=h}
+function fmt(n){return n!=null?n.toLocaleString('vi-VN'):''}
+</script></body></html>

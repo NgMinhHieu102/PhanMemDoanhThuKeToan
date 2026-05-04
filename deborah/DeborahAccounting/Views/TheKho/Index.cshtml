@@ -1,0 +1,223 @@
+@{
+    ViewData["Title"] = "Thẻ kho";
+    var dsVT = (List<DeborahAccounting.Models.DMVT>)ViewBag.DSVT;
+    var dsKho = (List<DeborahAccounting.Models.DMKho>)ViewBag.DSKho;
+}
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+<style>
+    .filter-modal .modal-dialog { max-width: 440px; }
+    .filter-modal .modal-body { padding: 20px 30px; }
+    .filter-modal .row.mb-3 label { font-weight: 600; font-size: 13px; min-width: 90px; }
+    .filter-modal .form-control, .filter-modal .form-select { font-size: 13px; }
+    .filter-modal .modal-footer { justify-content: center; gap: 15px; }
+    .filter-modal .btn-xem { background: #2874a6; color: #fff; display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 6px 20px; border: none; border-radius: 4px; }
+    .filter-modal .btn-xem:hover { background: #1b4f72; }
+    .filter-modal .btn-dong { background: #c0392b; color: #fff; display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 6px 20px; border: none; border-radius: 4px; }
+    .filter-modal .btn-dong:hover { background: #e74c3c; }
+    .thekho-header { text-align: center; margin-bottom: 10px; }
+    .thekho-header h4 { font-weight: 800; color: #1b4f72; margin-bottom: 4px; }
+    .thekho-header .sub { font-size: 13px; color: #555; }
+    .thekho-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    .thekho-table th { background: #d6e4f0; color: #1b4f72; font-weight: 700; padding: 7px 10px; border: 1px solid #b0c4d8; text-align: center; }
+    .thekho-table td { padding: 5px 10px; border: 1px solid #ddd; }
+    .thekho-table td.num { text-align: right; }
+    .thekho-table .row-tdk { background: #fff8e1; font-weight: 600; }
+    .thekho-table tbody tr:hover { background: #eaf2f8; }
+    .result-wrap { background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 15px; display: none; }
+    .dm-toolbar .btn-filter i { color: #f39c12; }
+    .dm-toolbar .btn-print-report i { color: #6f42c1; }
+    .validation-error { color: #dc3545; font-size: 12px; margin-top: 2px; display: none; }
+</style>
+
+<div class="dm-container">
+    <div class="dm-toolbar">
+        <button class="btn btn-filter" onclick="showFilter()"><i class="bi bi-funnel"></i> Điều kiện lọc</button>
+        <button class="btn btn-print-report" onclick="printReport()"><i class="bi bi-printer"></i> In thẻ kho</button>
+        <a class="btn btn-close-form" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle-fill"></i> Thoát</a>
+    </div>
+    <div id="resultWrap" class="result-wrap">
+        <div class="thekho-header">
+            <h4>THẺ KHO</h4>
+            <div class="sub" id="infoLine"></div>
+        </div>
+        <div style="overflow:auto; max-height:calc(100vh - 300px);">
+            <table class="thekho-table" id="theKhoTable">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width:100px">Ngày tháng<br/>ghi sổ</th>
+                        <th colspan="2">Chứng từ</th>
+                        <th rowspan="2">Diễn giải</th>
+                        <th colspan="3">Số lượng</th>
+                    </tr>
+                    <tr>
+                        <th>Số hiệu</th>
+                        <th>Ngày, tháng</th>
+                        <th>SL Nhập</th>
+                        <th>SL Xuất</th>
+                        <th>SL Tồn</th>
+                    </tr>
+                </thead>
+                <tbody id="theKhoBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Điều kiện lọc -->
+<div class="modal fade filter-modal" id="filterModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#1b4f72; color:#fff; padding:8px 16px;">
+                <h5 class="modal-title" style="font-size:14px; font-weight:700;"><i class="bi bi-card-list"></i> Thẻ kho</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1);"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4">Từ ngày</label>
+                    <div class="col-sm-8">
+                        <input type="date" class="form-control form-control-sm" id="fTuNgay" />
+                        <div class="validation-error" id="errTuNgay"></div>
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4">Đến ngày</label>
+                    <div class="col-sm-8">
+                        <input type="date" class="form-control form-control-sm" id="fDenNgay" />
+                        <div class="validation-error" id="errDenNgay"></div>
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4">Mã vật tư</label>
+                    <div class="col-sm-8">
+                        <select class="form-select form-select-sm" id="fMaVT">
+                            <option value="">-- Chọn --</option>
+                            @foreach (var vt in dsVT)
+                            {
+                                <option value="@vt.MaVT">@vt.MaVT - @vt.TenVT</option>
+                            }
+                        </select>
+                        <div class="validation-error" id="errMaVT"></div>
+                    </div>
+                </div>
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4">Mã kho</label>
+                    <div class="col-sm-8">
+                        <select class="form-select form-select-sm" id="fMaKho">
+                            <option value="">-- Chọn --</option>
+                            @foreach (var k in dsKho)
+                            {
+                                <option value="@k.MaKho">@k.MaKho - @k.TenKho</option>
+                            }
+                        </select>
+                        <div class="validation-error" id="errMaKho"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-xem" onclick="doXem()"><i class="bi bi-eye"></i> Xem</button>
+                <button class="btn btn-dong" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    var filterModal;
+    var lastData = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        filterModal = new bootstrap.Modal(document.getElementById('filterModal'));
+        filterModal.show();
+    });
+
+    function showFilter() { filterModal.show(); }
+
+    function clearErrors() {
+        document.querySelectorAll('.validation-error').forEach(e => { e.style.display = 'none'; e.textContent = ''; });
+        document.querySelectorAll('#filterModal .form-control, #filterModal .form-select').forEach(e => e.classList.remove('is-invalid'));
+    }
+
+    function showError(id, msg) {
+        var el = document.getElementById(id);
+        el.textContent = msg;
+        el.style.display = 'block';
+        el.previousElementSibling.classList.add('is-invalid');
+    }
+
+    function doXem() {
+        clearErrors();
+        var tuNgay = document.getElementById('fTuNgay').value;
+        var denNgay = document.getElementById('fDenNgay').value;
+        var maVT = document.getElementById('fMaVT').value;
+        var maKho = document.getElementById('fMaKho').value;
+        var valid = true;
+
+        if (!tuNgay) { showError('errTuNgay', 'Vui lòng chọn Từ ngày'); valid = false; }
+        if (!denNgay) { showError('errDenNgay', 'Vui lòng chọn Đến ngày'); valid = false; }
+        if (tuNgay && denNgay && tuNgay > denNgay) { showError('errDenNgay', 'Đến ngày phải lớn hơn hoặc bằng Từ ngày'); valid = false; }
+        if (!maVT) { showError('errMaVT', 'Vui lòng chọn Mã vật tư'); valid = false; }
+        if (!maKho) { showError('errMaKho', 'Vui lòng chọn Mã kho'); valid = false; }
+        if (!valid) return;
+
+        fetch('@Url.Action("Xem", "TheKho")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `tuNgay=${tuNgay}&denNgay=${denNgay}&maVT=${encodeURIComponent(maVT)}&maKho=${encodeURIComponent(maKho)}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) { alert(data.message); return; }
+            lastData = data;
+            renderTable(data);
+            filterModal.hide();
+            document.getElementById('resultWrap').style.display = 'block';
+        })
+        .catch(() => alert('Có lỗi xảy ra'));
+    }
+
+    function renderTable(data) {
+        document.getElementById('infoLine').innerHTML =
+            `Từ ngày <b>${data.tuNgay}</b> đến ngày <b>${data.denNgay}</b><br/>Kho: <b>${data.maKho} - ${data.tenKho}</b><br/>Vật tư: <b>${data.maVT} - ${data.tenVT}</b>`;
+
+        var body = document.getElementById('theKhoBody');
+        var html = `<tr class="row-tdk">
+            <td></td><td></td><td></td>
+            <td>Tồn đầu kỳ</td>
+            <td class="num">0</td><td class="num">0</td>
+            <td class="num">${formatNum(data.tonDauKy)}</td></tr>`;
+
+        var tongNhap = 0, tongXuat = 0;
+        data.rows.forEach(function (r) {
+            tongNhap += r.nhap;
+            tongXuat += r.xuat;
+            html += `<tr>
+                <td>${r.ngayCT}</td>
+                <td>${r.soCT}</td>
+                <td>${r.ngayCT}</td>
+                <td>${r.lyDo}</td>
+                <td class="num">${r.nhap ? formatNum(r.nhap) : '0'}</td>
+                <td class="num">${r.xuat ? formatNum(r.xuat) : '0'}</td>
+                <td class="num">${formatNum(r.ton)}</td>
+            </tr>`;
+        });
+
+        var tonCuoi = data.rows.length > 0 ? data.rows[data.rows.length - 1].ton : data.tonDauKy;
+        html += `<tr style="font-weight:700; background:#e8f4fd;">
+            <td colspan="4" style="text-align:center">Tổng cộng</td>
+            <td class="num">${formatNum(tongNhap)}</td>
+            <td class="num">${formatNum(tongXuat)}</td>
+            <td class="num">${formatNum(tonCuoi)}</td>
+        </tr>`;
+        body.innerHTML = html;
+    }
+
+    function formatNum(n) { return n != null ? n.toLocaleString('vi-VN') : ''; }
+
+    function printReport() {
+        if (!lastData) { alert('Vui lòng xem dữ liệu trước khi in'); return; }
+        localStorage.setItem('theKhoPrintData', JSON.stringify(lastData));
+        window.open('@Url.Action("Print", "TheKho")', '_blank');
+    }
+</script>
+}

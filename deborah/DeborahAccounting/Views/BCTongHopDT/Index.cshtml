@@ -1,0 +1,57 @@
+@{ ViewData["Title"] = "Báo cáo tổng hợp doanh thu bán hàng"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+<style>
+    .filter-modal .modal-dialog{max-width:400px}.filter-modal .modal-body{padding:20px 30px}
+    .filter-modal .row.mb-3 label{font-weight:600;font-size:13px}.filter-modal .form-control{font-size:13px}
+    .filter-modal .modal-footer{justify-content:center;gap:15px}
+    .filter-modal .btn-xem{background:#2874a6;color:#fff;display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 20px;border:none;border-radius:4px}
+    .filter-modal .btn-dong{background:#c0392b;color:#fff;display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 20px;border:none;border-radius:4px}
+    .bc-header{text-align:center;margin-bottom:10px}.bc-header h4{font-weight:800;color:#1b4f72;margin-bottom:4px}.bc-header .sub{font-size:13px;color:#555}
+    .bc-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+    .bc-table th{background:#d6e4f0;color:#1b4f72;font-weight:700;padding:6px 8px;border:1px solid #b0c4d8;text-align:center}
+    .bc-table td{padding:4px 8px;border:1px solid #ddd}.bc-table td.num{text-align:right}.bc-table tbody tr:hover{background:#eaf2f8}
+    .result-wrap{background:#fff;border:1px solid #ccc;border-radius:4px;padding:15px;display:none}
+</style>
+<div class="dm-container">
+    <div class="dm-toolbar">
+        <button class="btn" onclick="showFilter()" style="font-size:12px"><i class="bi bi-funnel" style="color:#f39c12"></i> Điều kiện lọc</button>
+        <button class="btn" onclick="printReport()" style="font-size:12px"><i class="bi bi-printer" style="color:#6f42c1"></i> In báo cáo</button>
+        <a class="btn btn-close-form" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle-fill"></i> Thoát</a>
+    </div>
+    <div id="resultWrap" class="result-wrap">
+        <div class="bc-header"><h4>BÁO CÁO TỔNG HỢP DOANH THU</h4><div class="sub" id="infoLine"></div></div>
+        <table class="bc-table"><thead><tr><th>Mã KH</th><th>Tên khách hàng</th><th>Doanh thu</th><th>Giảm trừ</th><th>Doanh thu thuần</th></tr></thead>
+        <tbody id="mainBody"></tbody></table>
+    </div>
+</div>
+<div class="modal fade filter-modal" id="filterModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header" style="background:#1b4f72;color:#fff;padding:8px 16px;">
+            <h5 class="modal-title" style="font-size:14px;font-weight:700;">Báo cáo tổng hợp doanh thu bán hàng</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1)"></button></div>
+        <div class="modal-body">
+            <div class="row mb-3 align-items-center"><label class="col-sm-4">Từ ngày</label><div class="col-sm-8"><input type="date" class="form-control form-control-sm" id="fTuNgay"/></div></div>
+            <div class="row mb-3 align-items-center"><label class="col-sm-4">Đến ngày</label><div class="col-sm-8"><input type="date" class="form-control form-control-sm" id="fDenNgay"/></div></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-xem" onclick="doXem()"><i class="bi bi-eye"></i> Xem</button><button class="btn btn-dong" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Đóng</button></div>
+    </div></div>
+</div>
+@section Scripts {
+<script>
+var filterModal,lastData=null;
+document.addEventListener('DOMContentLoaded',function(){filterModal=new bootstrap.Modal(document.getElementById('filterModal'));filterModal.show()});
+function showFilter(){filterModal.show()}
+function doXem(){
+    var t=document.getElementById('fTuNgay').value,d=document.getElementById('fDenNgay').value;
+    if(!t||!d){alert('Vui lòng chọn đầy đủ ngày');return}
+    fetch('@Url.Action("Xem","BCTongHopDT")',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`tuNgay=${t}&denNgay=${d}`})
+    .then(r=>r.json()).then(data=>{
+        if(!data.success){alert(data.message);return}lastData=data;
+        document.getElementById('infoLine').innerHTML=`Từ ngày <b>${data.tuNgay}</b> đến ngày <b>${data.denNgay}</b>`;
+        var h='';data.rows.forEach(r=>{h+=`<tr><td>${r.maKH}</td><td>${r.tenKH}</td><td class="num">${fmt(r.doanhThu)}</td><td class="num">${fmt(r.giamTru)}</td><td class="num">${fmt(r.doanhThuThuan)}</td></tr>`});
+        document.getElementById('mainBody').innerHTML=h;filterModal.hide();document.getElementById('resultWrap').style.display='block';
+    });
+}
+function fmt(n){return n!=null?n.toLocaleString('vi-VN'):''}
+function printReport(){if(!lastData){alert('Vui lòng xem dữ liệu trước');return}localStorage.setItem('bcthdtData',JSON.stringify(lastData));window.open('@Url.Action("Print","BCTongHopDT")','_blank')}
+</script>}

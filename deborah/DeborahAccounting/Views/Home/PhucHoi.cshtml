@@ -1,0 +1,47 @@
+@{ ViewData["Title"] = "Phục hồi dữ liệu"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+
+<div class="dm-container">
+    <div class="backup-panel">
+        <h3 class="backup-title">PHỤC HỒI</h3>
+        <div class="backup-body">
+            <div class="mb-3 row align-items-center">
+                <label class="col-sm-4 col-form-label fw-bold" style="font-size:15px;">File phục hồi</label>
+                <div class="col-sm-6">
+                    <input class="form-control" id="fRestorePath" readonly />
+                </div>
+                <div class="col-sm-2">
+                    <button class="btn btn-outline-secondary w-100" onclick="document.getElementById('filePickerRestore').click()">Chọn</button>
+                    <input type="file" id="filePickerRestore" style="display:none" accept=".bak,.sql,.zip"
+                           onchange="document.getElementById('fRestorePath').value = this.files.length ? this.files[0].name : ''" />
+                </div>
+            </div>
+        </div>
+        <div class="backup-actions">
+            <button class="btn btn-primary btn-lg" onclick="doRestore()"><i class="bi bi-upload"></i> Phục hồi</button>
+            <a class="btn btn-secondary btn-lg" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle"></i> Thoát</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .backup-panel { padding: 30px 40px; text-align: center; }
+    .backup-title {
+        color: #1b4f72; font-weight: 900; font-size: 28px;
+        margin-bottom: 30px; letter-spacing: 2px;
+    }
+    .backup-body { max-width: 600px; margin: 0 auto 30px; text-align: left; }
+    .backup-actions { display: flex; justify-content: center; gap: 20px; }
+    .backup-actions .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 30px; font-size: 15px; font-weight: 600; }
+</style>
+
+@section Scripts {
+<script>
+function doRestore() {
+    let path = document.getElementById('fRestorePath').value;
+    if (!path) { alert('Vui lòng chọn file phục hồi'); return; }
+    if (!confirm('Bạn có chắc chắn muốn phục hồi dữ liệu từ file: ' + path + '?')) return;
+    alert('Chức năng phục hồi dữ liệu đang được phát triển.\nFile: ' + path);
+}
+</script>
+}

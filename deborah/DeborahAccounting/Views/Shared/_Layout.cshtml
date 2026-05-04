@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phần mềm Kế toán Doanh thu Bán hàng - Công ty Cổ phần Deborah (Deborah Home)</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DeborahAccounting.styles.css" asp-append-version="true" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef1f5; display: flex; flex-direction: column; min-height: 100vh; }
+        .top-menu { background: #1b4f72; padding: 0; flex-shrink: 0; }
+        .top-menu .navbar-nav { gap: 0; }
+        .top-menu .nav-link { color: #e8e8e8 !important; font-size: 13px; font-weight: 600; padding: 9px 15px; gap: 5px; display: flex; align-items: center; border-right: 1px solid rgba(255,255,255,0.08); transition: background 0.15s; }
+        .top-menu .nav-link:hover, .top-menu .nav-item.show .nav-link { background: #2874a6; color: #fff !important; }
+        .top-menu .nav-link i { font-size: 14px; opacity: 0.85; }
+        .dropdown-menu { border: none; border-radius: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.18); padding: 6px 0; min-width: 230px; }
+        .dropdown-item { font-size: 13px; padding: 7px 16px; display: flex; align-items: center; gap: 8px; }
+        .dropdown-item i { font-size: 14px; color: #2874a6; width: 18px; text-align: center; }
+        .dropdown-item:hover { background: #d6eaf8; color: #1b4f72; }
+        .dropdown-divider { margin: 4px 0; }
+        .page-header { background: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #d4ac0d; flex-shrink: 0; }
+        .page-header h5 { margin: 0; color: #1b4f72; font-weight: 800; font-size: 15px; letter-spacing: 0.5px; }
+        .user-info { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; }
+        .user-info i { color: #2874a6; font-size: 17px; }
+        .user-info .name { font-weight: 600; }
+        .main-content { flex: 1; padding: 20px; }
+        .footer-bar { background: #1b4f72; color: rgba(255,255,255,0.8); text-align: center; padding: 8px; font-size: 12px; font-weight: 600; letter-spacing: 1px; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg top-menu">
+        <div class="container-fluid px-0">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu">
+                <i class="bi bi-list text-white" style="font-size:22px;"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="mainMenu">
+                <ul class="navbar-nav">
+                    <!-- Hệ thống -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-gear-fill"></i> Hệ thống</a>
+                        <ul class="dropdown-menu">
+                            @if (User.FindFirst("Quyen")?.Value == "1")
+                            {
+                            <li><a class="dropdown-item" asp-controller="NguoiDung" asp-action="Index"><i class="bi bi-person-plus"></i>Quản trị người dùng</a></li>
+                            <li><a class="dropdown-item" asp-controller="Account" asp-action="DangKy"><i class="bi bi-person-add"></i>Đăng ký</a></li>
+                            <li><a class="dropdown-item" asp-controller="Home" asp-action="SaoLuu"><i class="bi bi-download"></i>Sao lưu dữ liệu</a></li>
+                            <li><a class="dropdown-item" asp-controller="Home" asp-action="PhucHoi"><i class="bi bi-upload"></i>Phục hồi dữ liệu</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            }
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right"></i>Đăng xuất</button>
+                                </form>
+                            </li>
+                            <li><a class="dropdown-item" href="javascript:window.close();"><i class="bi bi-x-circle"></i>Thoát</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Danh mục -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-journal-text"></i> Danh mục</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" asp-controller="DMTK" asp-action="Index"><i class="bi bi-wallet2"></i>Danh mục tài khoản</a></li>
+                            <li><a class="dropdown-item" asp-controller="DMKH" asp-action="Index"><i class="bi bi-people"></i>Danh mục khách hàng</a></li>
+                            <li><a class="dropdown-item" asp-controller="DMHH" asp-action="Index"><i class="bi bi-box-seam"></i>Danh mục hàng hóa</a></li>
+                            <li><a class="dropdown-item" asp-controller="DMKho" asp-action="Index"><i class="bi bi-house-door"></i>Danh mục kho</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Cập nhật -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-pencil-square"></i> Cập nhật</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" asp-controller="CKTM" asp-action="Index"><i class="bi bi-percent"></i>Cập nhật chiết khấu thương mại</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-cash-coin"></i>Cập nhật chiết khấu thanh toán</a></li>
+                            <li><a class="dropdown-item" asp-controller="BieuThue" asp-action="Index"><i class="bi bi-receipt-cutoff"></i>Cập nhật biểu thuế GTGT</a></li>
+                            <li><a class="dropdown-item" asp-controller="BangGiaBan" asp-action="Index"><i class="bi bi-tag"></i>Cập nhật giá bán</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Đầu kỳ -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-calendar-event"></i> Đầu kỳ</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" asp-controller="SoDuDauKy" asp-action="Index"><i class="bi bi-cash-stack"></i>Số dư đầu kỳ tài khoản</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Phát sinh -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-file-earmark-text"></i> Phát sinh</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" asp-controller="HoaDonGTGT" asp-action="Index"><i class="bi bi-receipt"></i>Hóa đơn GTGT</a></li>
+                            <li><a class="dropdown-item" asp-controller="PhieuNhap" asp-action="Index"><i class="bi bi-box-arrow-in-down"></i>Phiếu nhập kho</a></li>
+                            <li><a class="dropdown-item" asp-controller="PhieuXuat" asp-action="Index"><i class="bi bi-box-arrow-up"></i>Phiếu xuất kho</a></li>
+                            <li><a class="dropdown-item" asp-controller="PhieuKT" asp-action="Index"><i class="bi bi-journal-check"></i>Phiếu kế toán</a></li>
+                            <li><a class="dropdown-item" asp-controller="PhieuGiamGia" asp-action="Index"><i class="bi bi-arrow-down-circle"></i>Phiếu giảm giá hàng bán</a></li>
+                            <li><a class="dropdown-item" asp-controller="HoaDonTraLai" asp-action="Index"><i class="bi bi-arrow-return-left"></i>Hóa đơn hàng trả lại</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Sổ sách -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-book"></i> Sổ sách</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" asp-controller="SoCaiTK" asp-action="Index"><i class="bi bi-journal-bookmark"></i>Sổ cái tài khoản</a></li>
+                            <li><a class="dropdown-item" asp-controller="SoChiTietTK" asp-action="Index"><i class="bi bi-journal"></i>Sổ chi tiết tài khoản</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Báo cáo -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-bar-chart-line"></i> Báo cáo</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" asp-controller="BCDoanhThuKH" asp-action="Index"><i class="bi bi-people"></i>Báo cáo doanh thu theo khách hàng</a></li>
+                            <li><a class="dropdown-item" asp-controller="BCDoanhThuMH" asp-action="Index"><i class="bi bi-box-seam"></i>Báo cáo doanh thu theo mặt hàng</a></li>
+                            <li><a class="dropdown-item" asp-controller="BCGiamTruDT" asp-action="Index"><i class="bi bi-arrow-down-circle"></i>Báo cáo giảm trừ doanh thu</a></li>
+                            <li><a class="dropdown-item" asp-controller="BCTongHopDT" asp-action="Index"><i class="bi bi-file-earmark-spreadsheet"></i>Báo cáo tổng hợp doanh thu bán hàng</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h5>KẾ TOÁN DOANH THU BÁN HÀNG</h5>
+        <div class="user-info">
+            <i class="bi bi-person-circle"></i>
+            <span class="name">@User.FindFirst("FullName")?.Value</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        @RenderBody()
+    </div>
+
+    <div class="footer-bar">CÔNG TY CỔ PHẦN DEBORAH (DEBORAH HOME)</div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

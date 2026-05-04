@@ -1,0 +1,98 @@
+@model List<DeborahAccounting.Models.PhieuKT>
+@{ ViewData["Title"] = "Danh sách Phiếu kế toán"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+
+<div class="dm-container">
+    <div class="dm-toolbar">
+        <button class="btn btn-add" onclick="showAdd()"><i class="bi bi-plus-circle"></i> Thêm</button>
+        <button class="btn btn-edit" onclick="showEdit()"><i class="bi bi-pencil"></i> Sửa</button>
+        <button class="btn btn-delete" onclick="doDelete()"><i class="bi bi-trash"></i> Xóa</button>
+        <button class="btn btn-reload" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Tải lại dữ liệu</button>
+        <button class="btn btn-print" onclick="doPrint()"><i class="bi bi-printer"></i> In</button>
+        <a class="btn btn-close-form" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle-fill"></i> Thoát</a>
+    </div>
+    <div class="dm-table-wrap">
+        <table class="dm-grid">
+            <thead><tr><th style="width:24px"></th><th>Số chứng từ</th><th>Ngày chứng từ</th><th>Diễn Giải</th></tr></thead>
+            <tbody id="gridBody">
+                @foreach (var p in Model)
+                {
+                    <tr data-id="@p.SoCT" onclick="selectRow(this)">
+                        <td class="row-indicator">▶</td>
+                        <td>@p.SoCT</td>
+                        <td>@p.NgayCT.ToString("M/d/yyyy")</td>
+                        <td>@p.LyDo</td>
+                    </tr>
+                }
+                <tr class="new-row"><td class="row-indicator"><span class="required-star">✱</span></td><td></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade dm-modal" id="formModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="modalTitle">Cập nhật Phiếu kế toán</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" style="font-size:13px;">
+                <input type="hidden" id="editMode" />
+                <div class="row align-items-center mb-2">
+                    <label class="col-sm-3 fw-bold">Số chứng từ</label>
+                    <div class="col-sm-3"><input class="form-control form-control-sm" id="fSoCT" maxlength="6" /></div>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <label class="col-sm-3 fw-bold">Ngày chứng từ</label>
+                    <div class="col-sm-3"><input class="form-control form-control-sm" id="fNgayCT" type="date" /></div>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <label class="col-sm-3 fw-bold">Chứng từ LQ</label>
+                    <div class="col-sm-9"><input class="form-control form-control-sm" id="fCTLQ" maxlength="60" /></div>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <label class="col-sm-3 fw-bold">Lý Do</label>
+                    <div class="col-sm-9"><input class="form-control form-control-sm" id="fLyDo" maxlength="60" /></div>
+                </div>
+                <div class="dm-table-wrap" style="max-height:250px;">
+                    <table class="dm-grid">
+                        <thead><tr><th>TK Nợ</th><th>TK Có</th><th>Nội dung</th><th style="text-align:right">Số tiền</th><th style="width:30px"></th></tr></thead>
+                        <tbody id="ctBody"></tbody>
+                    </table>
+                </div>
+                <button class="btn btn-sm btn-outline-primary mt-2" onclick="addCTRow()"><i class="bi bi-plus"></i> Thêm dòng</button>
+            </div>
+            <div class="modal-footer justify-content-end gap-2">
+                <button class="btn btn-primary" onclick="save()"><i class="bi bi-floppy"></i> Lưu</button>
+                <button class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-x-circle-fill"></i> Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const dsTK = @Html.Raw(Json.Serialize(ViewBag.DSTK));
+let selectedId = null;
+function selectRow(tr){document.querySelectorAll('#gridBody tr').forEach(r=>r.classList.remove('selected'));tr.classList.add('selected');selectedId=tr.dataset.id;}
+function tkOpts(){return dsTK.map(t=>`<option value="${t.maTK}">${t.maTK}</option>`).join('');}
+function addCTRow(data){
+    let tr=document.createElement('tr');
+    tr.innerHTML=`<td><select class="form-select form-select-sm ct-tkno"><option value=""></option>${tkOpts()}</select></td>
+    <td><select class="form-select form-select-sm ct-tkco"><option value=""></option>${tkOpts()}</select></td>
+    <td><input class="form-control form-control-sm ct-nd" /></td>
+    <td><input class="form-control form-control-sm ct-st text-end" type="number" value="0" /></td>
+    <td><button class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-trash"></i></button></td>`;
+    document.getElementById('ctBody').appendChild(tr);
+    if(data){tr.querySelector('.ct-tkno').value=data.tkNo||'';tr.querySelector('.ct-tkco').value=data.tkCo||'';tr.querySelector('.ct-nd').value=data.noiDung||'';tr.querySelector('.ct-st').value=data.soTien;}
+}
+function clearForm(){['fSoCT','fCTLQ','fLyDo'].forEach(id=>document.getElementById(id).value='');document.getElementById('fNgayCT').value=new Date().toISOString().split('T')[0];document.getElementById('ctBody').innerHTML='';}
+function showAdd(){document.getElementById('editMode').value='add';document.getElementById('modalTitle').textContent='Thêm Phiếu kế toán';clearForm();document.getElementById('fSoCT').disabled=false;addCTRow();new bootstrap.Modal(document.getElementById('formModal')).show();}
+function showEdit(){if(!selectedId){alert('Chọn một dòng để sửa');return;}document.getElementById('editMode').value='edit';document.getElementById('modalTitle').textContent='Cập nhật Phiếu kế toán';clearForm();document.getElementById('fSoCT').disabled=true;document.getElementById('fSoCT').value=selectedId;
+    fetch(`/PhieuKT/GetDetail?id=${selectedId}`).then(r=>r.json()).then(d=>{document.getElementById('fNgayCT').value=d.ngayCT?.split('T')[0]||'';document.getElementById('fCTLQ').value=d.ctlq||'';document.getElementById('fLyDo').value=d.lyDo||'';if(d.chiTietPhieu)d.chiTietPhieu.forEach(ct=>addCTRow(ct));if(!d.chiTietPhieu||d.chiTietPhieu.length===0)addCTRow();});
+    new bootstrap.Modal(document.getElementById('formModal')).show();}
+function save(){let mode=document.getElementById('editMode').value;let url=mode==='add'?'@Url.Action("Create")':'@Url.Action("Edit")';let ct=[];document.querySelectorAll('#ctBody tr').forEach(tr=>{let tkno=tr.querySelector('.ct-tkno')?.value;let tkco=tr.querySelector('.ct-tkco')?.value;if(!tkno&&!tkco)return;ct.push({TKNo:tkno||null,TKCo:tkco||null,NoiDung:tr.querySelector('.ct-nd')?.value||null,SoTien:parseFloat(tr.querySelector('.ct-st')?.value)||0});});
+    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({SoCT:document.getElementById('fSoCT').value,NgayCT:document.getElementById('fNgayCT').value,CTLQ:document.getElementById('fCTLQ').value,LyDo:document.getElementById('fLyDo').value,ChiTiet:ct})}).then(r=>r.json()).then(r=>{if(r.success){bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();reload();}else alert(r.message);});}
+function doDelete(){if(!selectedId){alert('Chọn một dòng để xóa');return;}if(!confirm('Xác nhận xóa?'))return;fetch('@Url.Action("Delete")',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(selectedId)}).then(r=>r.json()).then(r=>{if(r.success)reload();else alert(r.message);});}
+function doPrint(){if(!selectedId){alert('Chọn một phiếu để in');return;}window.open('/PhieuKT/Print?id='+selectedId,'_blank');}
+function reload(){location.reload();}
+</script>
+}

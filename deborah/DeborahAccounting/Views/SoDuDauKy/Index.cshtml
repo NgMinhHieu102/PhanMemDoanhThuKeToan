@@ -1,0 +1,69 @@
+@model List<DeborahAccounting.Models.SoDuDauKy>
+@{ ViewData["Title"] = "Số dư đầu kỳ tài khoản"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+<div class="dm-container">
+    <div class="dm-toolbar">
+        <button class="btn btn-add" onclick="showAdd()"><i class="bi bi-plus-circle"></i> Thêm/Sửa</button>
+        <button class="btn btn-delete" onclick="doDelete()"><i class="bi bi-trash"></i> Xóa</button>
+        <button class="btn btn-reload" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
+        <a class="btn btn-close-form" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle-fill"></i> Thoát</a>
+    </div>
+    <div class="dm-table-wrap">
+        <table class="dm-grid">
+            <thead><tr><th style="width:24px"></th><th>Mã TK</th><th>Tên tài khoản</th><th style="text-align:right">Dư Nợ</th><th style="text-align:right">Dư Có</th></tr></thead>
+            <tbody id="gridBody">
+                @foreach(var s in Model){
+                <tr data-id="@s.MaTK" data-duno="@s.DuNo" data-duco="@s.DuCo" onclick="selectRow(this)">
+                    <td class="row-indicator">▶</td><td>@s.MaTK</td><td>@s.TaiKhoan?.TenTK</td>
+                    <td style="text-align:right">@(s.DuNo > 0 ? s.DuNo.ToString("N0") : "")</td>
+                    <td style="text-align:right">@(s.DuCo > 0 ? s.DuCo.ToString("N0") : "")</td>
+                </tr>}
+                <tr class="new-row"><td class="row-indicator"><span class="required-star">✱</span></td><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade dm-modal" id="formModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Số dư đầu kỳ tài khoản</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Tài khoản</label><div class="col-sm-6">
+            <select class="form-select" id="fMaTK">
+                <option value="">-- Chọn --</option>
+                @foreach(var t in (List<DeborahAccounting.Models.DMTK>)ViewBag.DSTK){<option value="@t.MaTK">@t.MaTK - @t.TenTK</option>}
+            </select></div></div>
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Dư Nợ</label><div class="col-sm-5"><input class="form-control" id="fDuNo" type="number" value="0" onchange="onDuChange('no')"/></div></div>
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Dư Có</label><div class="col-sm-5"><input class="form-control" id="fDuCo" type="number" value="0" onchange="onDuChange('co')"/></div></div>
+        <div style="font-size:11px;color:#888;margin-left:33%">* Chỉ nhập 1 trong 2: Dư Nợ hoặc Dư Có</div>
+    </div>
+    <div class="modal-footer justify-content-end gap-2"><button class="btn btn-primary" onclick="save()"><i class="bi bi-floppy"></i> Lưu</button><button class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-x-circle-fill"></i> Hủy</button></div>
+</div></div></div>
+@section Scripts {
+<script>
+let selectedId=null;
+function selectRow(tr){document.querySelectorAll('#gridBody tr').forEach(r=>r.classList.remove('selected'));tr.classList.add('selected');selectedId=tr.dataset.id}
+function onDuChange(side){
+    if(side==='no'&&parseFloat(document.getElementById('fDuNo').value)>0) document.getElementById('fDuCo').value='0';
+    else if(side==='co'&&parseFloat(document.getElementById('fDuCo').value)>0) document.getElementById('fDuNo').value='0';
+}
+function showAdd(){
+    if(selectedId){
+        let tr=document.querySelector(`tr[data-id="${selectedId}"]`);
+        document.getElementById('fMaTK').value=selectedId;
+        document.getElementById('fDuNo').value=tr.dataset.duno||'0';
+        document.getElementById('fDuCo').value=tr.dataset.duco||'0';
+    } else {
+        document.getElementById('fMaTK').value='';
+        document.getElementById('fDuNo').value='0';document.getElementById('fDuCo').value='0';
+    }
+    new bootstrap.Modal(document.getElementById('formModal')).show();
+}
+function save(){
+    let data={MaTK:document.getElementById('fMaTK').value,DuNo:parseFloat(document.getElementById('fDuNo').value)||0,DuCo:parseFloat(document.getElementById('fDuCo').value)||0};
+    fetch('@Url.Action("Save")',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+    .then(r=>r.json()).then(r=>{if(r.success){bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();reload()}else alert(r.message)});
+}
+function doDelete(){if(!selectedId){alert('Chọn một dòng');return}if(!confirm('Xác nhận xóa?'))return;
+    fetch('@Url.Action("Delete")',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(selectedId)})
+    .then(r=>r.json()).then(r=>{if(r.success)reload();else alert(r.message)})}
+function reload(){location.reload()}
+</script>}

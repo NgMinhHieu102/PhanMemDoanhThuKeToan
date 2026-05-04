@@ -1,0 +1,67 @@
+@{
+    ViewData["Title"] = "Trang ch?";
+}
+
+<style>
+    .dashboard { max-width: 960px; margin: 0 auto; }
+    .section-title { font-size: 13px; font-weight: 700; color: #1b4f72; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #d4ac0d; display: inline-block; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .dash-card { background: #fff; border-radius: 8px; padding: 18px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #333; border: 1px solid #e0e0e0; transition: all 0.15s; }
+    .dash-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.1); border-color: #2874a6; color: #1b4f72; }
+    .dash-card i { font-size: 28px; color: #2874a6; flex-shrink: 0; width: 36px; text-align: center; }
+    .dash-card:hover i { color: #1b4f72; }
+    .dash-card span { font-size: 13px; font-weight: 600; line-height: 1.3; }
+</style>
+
+<div class="dashboard">
+    <!-- Phát sinh -->
+    <div class="section-title"><i class="bi bi-file-earmark-text"></i> Phát sinh</div>
+    <div class="card-grid">
+        <a class="dash-card" asp-controller="HoaDonGTGT" asp-action="Index">
+            <i class="bi bi-receipt"></i><span>Hóa don GTGT</span>
+        </a>
+        <a class="dash-card" asp-controller="PhieuNhap" asp-action="Index">
+            <i class="bi bi-box-arrow-in-down"></i><span>Phi?u nh?p kho</span>
+        </a>
+        <a class="dash-card" asp-controller="PhieuXuat" asp-action="Index">
+            <i class="bi bi-box-arrow-up"></i><span>Phi?u xu?t kho</span>
+        </a>
+        <a class="dash-card" asp-controller="PhieuKT" asp-action="Index">
+            <i class="bi bi-journal-check"></i><span>Phi?u k? toán</span>
+        </a>
+        <a class="dash-card" asp-controller="PhieuGiamGia" asp-action="Index">
+            <i class="bi bi-arrow-down-circle"></i><span>Phi?u gi?m giá hàng bán</span>
+        </a>
+        <a class="dash-card" asp-controller="HoaDonTraLai" asp-action="Index">
+            <i class="bi bi-arrow-return-left"></i><span>Hóa don hàng tr? l?i</span>
+        </a>
+    </div>
+
+    <!-- S? sách -->
+    <div class="section-title"><i class="bi bi-book"></i> S? sách</div>
+    <div class="card-grid">
+        <a class="dash-card" asp-controller="SoCaiTK" asp-action="Index">
+            <i class="bi bi-journal-bookmark"></i><span>S? cái tài kho?n</span>
+        </a>
+        <a class="dash-card" asp-controller="SoChiTietTK" asp-action="Index">
+            <i class="bi bi-journal"></i><span>S? chi ti?t tài kho?n</span>
+        </a>
+    </div>
+
+    <!-- Báo cáo -->
+    <div class="section-title"><i class="bi bi-bar-chart-line"></i> Báo cáo</div>
+    <div class="card-grid">
+        <a class="dash-card" asp-controller="BCDoanhThuKH" asp-action="Index">
+            <i class="bi bi-people"></i><span>Doanh thu theo khách hàng</span>
+        </a>
+        <a class="dash-card" asp-controller="BCDoanhThuMH" asp-action="Index">
+            <i class="bi bi-box-seam"></i><span>Doanh thu theo m?t hàng</span>
+        </a>
+        <a class="dash-card" asp-controller="BCGiamTruDT" asp-action="Index">
+            <i class="bi bi-arrow-down-circle"></i><span>Gi?m tr? doanh thu</span>
+        </a>
+        <a class="dash-card" asp-controller="BCTongHopDT" asp-action="Index">
+            <i class="bi bi-file-earmark-spreadsheet"></i><span>T?ng h?p doanh thu bán hàng</span>
+        </a>
+    </div>
+</div>

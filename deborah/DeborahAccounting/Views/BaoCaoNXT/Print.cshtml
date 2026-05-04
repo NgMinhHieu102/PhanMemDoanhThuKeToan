@@ -1,0 +1,78 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Tổng hợp nhập xuất tồn</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; font-size: 11px; margin: 20px 25px; color: #000; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .header-left { width: 55%; font-size: 11px; }
+        .header-right { width: 40%; text-align: right; font-size: 10px; font-style: italic; }
+        h2 { text-align: center; font-size: 16px; margin: 10px 0 5px; letter-spacing: 3px; font-weight: bold; }
+        .info-center { text-align: center; font-size: 11px; margin-bottom: 2px; }
+        table.ct { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 10px; }
+        table.ct th, table.ct td { border: 1px solid #000; padding: 2px 4px; }
+        table.ct th { background: #f0f0f0; text-align: center; font-weight: bold; }
+        table.ct td.num { text-align: right; }
+        .total-row td { font-weight: bold; }
+        .sign-section { display: flex; justify-content: space-between; margin-top: 20px; text-align: center; font-size: 11px; }
+        .sign-section div { width: 30%; }
+        .sign-section .title { font-weight: bold; }
+        .sign-section .sub { font-style: italic; font-size: 10px; }
+        .sign-section .name { margin-top: 50px; font-weight: bold; }
+        .date-line { text-align: right; font-style: italic; font-size: 11px; margin-top: 10px; }
+        @@media print { body { margin: 10px 15px; } @@page { size: landscape; } }
+    </style>
+</head>
+<body>
+    <div id="printContent"></div>
+    <script>
+        var data = null;
+        try { data = JSON.parse(localStorage.getItem('bcnxtPrintData')); } catch(e) {}
+        if (!data) { document.body.innerHTML = '<p>Không có dữ liệu để in.</p>'; }
+        else { renderPrint(data); window.print(); }
+
+        function renderPrint(d) {
+            var h = '<div class="header"><div class="header-left"><b>Công ty TNHH Cơ khí Chính xác RUIYOU Việt Nam</b><br/>';
+            h += 'Lô 15 Cụm công nghiệp Nội Hoàng, Xã Nội Hoàng, Huyện Yên Dũng, Tỉnh<br/>Bắc Giang, Việt Nam<br/>2400866968</div>';
+            h += '<div class="header-right"><b>Mẫu số S10- DN</b><br/><i>Ban hành kèm theo Thông tư số<br/>200/2014/TT-BTC ngày<br/>22/12/2014 của Bộ Tài chính</i></div></div>';
+            h += '<h2>TỔNG HỢP NHẬP XUẤT TỒN</h2>';
+            h += '<div class="info-center">Từ ngày <b>' + d.tuNgay + '</b> &nbsp;&nbsp; đến ngày <b>' + d.denNgay + '</b></div>';
+            h += '<div class="info-center">Kho: <b>' + d.maKho + ' - ' + d.tenKho + '</b></div>';
+            if (d.maVT) h += '<div class="info-center">Vật tư: <b>' + d.maVT + ' - ' + d.tenVT + '</b></div>';
+
+            h += '<table class="ct"><thead>';
+            h += '<tr><th rowspan="2">STT</th><th rowspan="2">Mã<br/>VTHH</th><th rowspan="2">Tên VTHH</th><th rowspan="2">ĐVT</th>';
+            h += '<th colspan="2">Tồn đầu kỳ</th><th colspan="2">Nhập trong kỳ</th>';
+            h += '<th colspan="2">Xuất trong kỳ</th><th colspan="2">Tồn cuối kỳ</th></tr>';
+            h += '<tr><th>Số<br/>lượng</th><th>Thành tiền</th><th>Số<br/>lượng</th><th>Thành tiền</th>';
+            h += '<th>Số<br/>lượng</th><th>Thành tiền</th><th>Số<br/>lượng</th><th>Thành tiền</th></tr></thead><tbody>';
+
+            d.rows.forEach(function(r, i) {
+                h += '<tr><td style="text-align:center">' + (i+1) + '</td><td>' + r.maVT + '</td><td>' + r.tenVT + '</td><td>' + r.dvt + '</td>';
+                h += '<td class="num">' + fmt(r.slDK) + '</td><td class="num">' + fmt(r.ttDK) + '</td>';
+                h += '<td class="num">' + fmt(r.slNhap) + '</td><td class="num">' + fmt(r.ttNhap) + '</td>';
+                h += '<td class="num">' + fmt(r.slXuat) + '</td><td class="num">' + fmt(r.ttXuat) + '</td>';
+                h += '<td class="num">' + fmt(r.slCuoi) + '</td><td class="num">' + fmt(r.ttCuoi) + '</td></tr>';
+            });
+
+            h += '<tr class="total-row"><td colspan="4"></td>';
+            h += '<td class="num">' + fmt(d.tSLDK) + '</td><td class="num">' + fmt(d.tTTDK) + '</td>';
+            h += '<td class="num">' + fmt(d.tSLN) + '</td><td class="num">' + fmt(d.tTTN) + '</td>';
+            h += '<td class="num">' + fmt(d.tSLX) + '</td><td class="num">' + fmt(d.tTTX) + '</td>';
+            h += '<td class="num">' + fmt(d.tSLC) + '</td><td class="num">' + fmt(d.tTTC) + '</td></tr>';
+            h += '</tbody></table>';
+
+            h += '<div class="date-line">Ngày.....tháng.....năm.....</div>';
+            h += '<div class="sign-section">';
+            h += '<div><span class="title">Người lập</span><br/><span class="sub">(Ký, họ tên)</span></div>';
+            h += '<div><span class="title">Kế toán trưởng</span><br/><span class="sub">(Ký, họ tên)</span><br/><span class="name">Đặng Thị Yến</span></div>';
+            h += '<div><span class="title">Giám đốc</span><br/><span class="sub">(Ký, họ tên, đóng dấu)</span><br/><span class="name">WANG YONGFENG</span></div>';
+            h += '</div>';
+            document.getElementById('printContent').innerHTML = h;
+        }
+        function fmt(n) { return n != null ? n.toLocaleString('vi-VN') : ''; }
+    </script>
+</body>
+</html>

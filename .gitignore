@@ -1,5 +1,12 @@
 # Ignore nested git repositories
-deborah/
+deborah/.git/
+
+# Ignore .NET build outputs
+**/bin/
+**/obj/
+*.dll
+*.exe
+*.pdb
 
 # Ignore system files
 .DS_Store

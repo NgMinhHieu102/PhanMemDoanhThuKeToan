@@ -1,0 +1,41 @@
+@model List<DeborahAccounting.Models.CKTM>
+@{ ViewData["Title"] = "Cập nhật chiết khấu thương mại"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+<div class="dm-container">
+    <div class="dm-toolbar">
+        <button class="btn btn-add" onclick="showAdd()"><i class="bi bi-plus-circle"></i> Thêm</button>
+        <button class="btn btn-edit" onclick="showEdit()"><i class="bi bi-pencil"></i> Sửa</button>
+        <button class="btn btn-delete" onclick="doDelete()"><i class="bi bi-trash"></i> Xóa</button>
+        <button class="btn btn-reload" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
+        <a class="btn btn-close-form" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle-fill"></i> Thoát</a>
+    </div>
+    <div class="dm-table-wrap">
+        <table class="dm-grid"><thead><tr><th style="width:24px"></th><th>Số bảng</th><th>Mã KH</th><th>Tên KH</th><th>Ngày hiệu lực</th><th>Tỷ lệ CK (%)</th><th style="text-align:right">Tiền CK</th></tr></thead>
+        <tbody id="gridBody">
+            @foreach(var i in Model){<tr data-id="@i.SoBang" onclick="selectRow(this)"><td class="row-indicator">▶</td><td>@i.SoBang</td><td>@i.MaKH</td><td>@i.KhachHang?.TenKH</td><td>@i.NgayHLuc.ToString("dd/MM/yyyy")</td><td>@i.TyleCK</td><td style="text-align:right">@i.TienCK.ToString("N0")</td></tr>}
+            <tr class="new-row"><td class="row-indicator"><span class="required-star">✱</span></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody></table>
+    </div>
+</div>
+<div class="modal fade dm-modal" id="formModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="modalTitle">Cập nhật CKTM</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><input type="hidden" id="editMode"/>
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Số bảng</label><div class="col-sm-5"><input class="form-control" id="fSoBang" maxlength="10"/></div></div>
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Mã KH</label><div class="col-sm-5">
+            <select class="form-select" id="fMaKH">@foreach(var k in (List<DeborahAccounting.Models.DMKH>)ViewBag.DSKH){<option value="@k.MaKH">@k.MaKH - @k.TenKH</option>}</select></div></div>
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Ngày hiệu lực</label><div class="col-sm-5"><input class="form-control" id="fNgay" type="date"/></div></div>
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Tỷ lệ CK (%)</label><div class="col-sm-4"><input class="form-control" id="fTyleCK" type="number"/></div></div>
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Tiền CK</label><div class="col-sm-5"><input class="form-control" id="fTienCK" type="number"/></div></div>
+    </div>
+    <div class="modal-footer justify-content-end gap-2"><button class="btn btn-primary" onclick="save()"><i class="bi bi-floppy"></i> Lưu</button><button class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-x-circle-fill"></i> Hủy</button></div>
+</div></div></div>
+@section Scripts {
+<script>
+let selectedId=null;
+function selectRow(tr){document.querySelectorAll('#gridBody tr').forEach(r=>r.classList.remove('selected'));tr.classList.add('selected');selectedId=tr.dataset.id}
+function showAdd(){document.getElementById('editMode').value='add';['fSoBang','fNgay','fTyleCK','fTienCK'].forEach(id=>document.getElementById(id).value='');document.getElementById('fSoBang').disabled=false;new bootstrap.Modal(document.getElementById('formModal')).show()}
+function showEdit(){if(!selectedId){alert('Chọn một dòng');return}let tr=document.querySelector(`tr[data-id="${selectedId}"]`);document.getElementById('editMode').value='edit';document.getElementById('fSoBang').value=selectedId;document.getElementById('fSoBang').disabled=true;document.getElementById('fMaKH').value=tr.cells[2].textContent;document.getElementById('fTyleCK').value=tr.cells[5].textContent;document.getElementById('fTienCK').value=tr.cells[6].textContent.replace(/\./g,'');new bootstrap.Modal(document.getElementById('formModal')).show()}
+function save(){let mode=document.getElementById('editMode').value;let url=mode==='add'?'@Url.Action("Create")':'@Url.Action("Edit")';let data={SoBang:document.getElementById('fSoBang').value,MaKH:document.getElementById('fMaKH').value,NgayHLuc:document.getElementById('fNgay').value,TyleCK:parseFloat(document.getElementById('fTyleCK').value)||0,TienCK:parseFloat(document.getElementById('fTienCK').value)||0};fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(r=>r.json()).then(r=>{if(r.success){bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();reload()}else alert(r.message)})}
+function doDelete(){if(!selectedId){alert('Chọn một dòng');return}if(!confirm('Xác nhận xóa?'))return;fetch('@Url.Action("Delete")',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(selectedId)}).then(r=>r.json()).then(r=>{if(r.success)reload();else alert(r.message)})}
+function reload(){location.reload()}
+</script>}

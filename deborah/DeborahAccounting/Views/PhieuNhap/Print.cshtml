@@ -1,0 +1,109 @@
+@model DeborahAccounting.Models.PhieuNhapXuat
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Phiếu Nhập Kho - @Model.SoCT</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; font-size: 13px; margin: 30px 50px; color: #000; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .header-left { width: 55%; font-size: 12px; }
+        .header-right { width: 40%; text-align: right; font-size: 11px; font-style: italic; }
+        h2 { text-align: center; font-size: 20px; margin: 15px 0 5px; letter-spacing: 5px; }
+        .info-line { display: flex; justify-content: center; gap: 60px; font-size: 13px; margin-bottom: 3px; }
+        .detail-section { margin: 15px 0; font-size: 13px; }
+        .detail-section span.label { display: inline-block; width: 100px; font-weight: bold; }
+        .detail-section span.value { font-weight: bold; font-style: italic; }
+        table.ct { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        table.ct th, table.ct td { border: 1px solid #000; padding: 4px 6px; }
+        table.ct th { background: #f0f0f0; text-align: center; font-weight: bold; }
+        table.ct td.num { text-align: right; }
+        .total-row td { font-weight: bold; }
+        .sign-section { display: flex; justify-content: space-between; margin-top: 30px; text-align: center; font-size: 12px; }
+        .sign-section div { width: 18%; }
+        .sign-section .title { font-weight: bold; }
+        .sign-section .sub { font-style: italic; font-size: 11px; }
+        .sign-section .name { margin-top: 50px; font-weight: bold; }
+        @@media print { body { margin: 15px 30px; } }
+    </style>
+</head>
+<body onload="window.print()">
+    <div class="header">
+        <div class="header-left">
+            <strong>Công ty Cổ phần Deborah (Deborah Home)</strong><br/>
+            Số 113 Điện Biên, Phường Cửa Bắc, Thành phố Nam Định, Tỉnh Nam Định<br/>
+            0601164235
+        </div>
+        <div class="header-right">
+            Mẫu số : 01 - VT<br/>
+            Ban hành kèm theo<br/>Thông tư số 200/2014/TT-BTC ngày 22/12/2014<br/>của Bộ Tài chính
+        </div>
+    </div>
+
+    <h2>PHIẾU NHẬP KHO</h2>
+    <div class="info-line">
+        <span>Ngày: @Model.NgayCT.ToString("M/d/yyyy")</span>
+        <span>Số: <strong>@Model.SoCT</strong></span>
+    </div>
+    @{ var firstCT = Model.ChiTietPhieuNX?.FirstOrDefault(); }
+    <div class="info-line">
+        <span>Nợ: @(firstCT?.TKNo)</span>
+    </div>
+    <div class="info-line">
+        <span>Có: @(firstCT?.TKCo)</span>
+    </div>
+
+    <div class="detail-section">
+        <div><span class="label">NCC/Bộ phận</span> <strong>@Model.NhaCungCap?.TenNCC</strong></div>
+        <div><span class="label">Địa chỉ</span> @Model.NhaCungCap?.DiaChi</div>
+        <div><span class="label">Kho</span> <span class="value">@Model.Kho?.TenKho</span></div>
+        <div><span class="label">Nội dung</span> @Model.LyDo</div>
+        <div><span class="label">Bộ phận</span></div>
+    </div>
+
+    <table class="ct">
+        <thead>
+            <tr>
+                <th>Tên nhãn hiệu, qui cách, phẩm chất vật tư (sản phẩm, hàng hoá)</th>
+                <th>Mã vật tư</th><th>ĐVT</th>
+                <th>Số lượng chứng từ</th><th>Số lượng thực nhận</th>
+                <th>Đơn giá</th><th>Thành tiền</th><th>Ghi chú</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ decimal tongTien = 0; }
+            @if (Model.ChiTietPhieuNX != null)
+            {
+                @foreach (var ct in Model.ChiTietPhieuNX)
+                {
+                    tongTien += ct.ThanhTien;
+                    <tr>
+                        <td>@ct.VatTu?.TenVT</td>
+                        <td>@ct.MaVT</td>
+                        <td>@ct.VatTu?.DVT</td>
+                        <td class="num">@ct.SoLuong.ToString("N0")</td>
+                        <td class="num">@ct.SoLuong.ToString("N0")</td>
+                        <td class="num">@ct.DonGia.ToString("N0")</td>
+                        <td class="num">@ct.ThanhTien.ToString("N0")</td>
+                        <td></td>
+                    </tr>
+                }
+            }
+            <tr class="total-row">
+                <td colspan="6" style="text-align:right">Tổng tiền</td>
+                <td class="num">@tongTien.ToString("N0")</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="sign-section">
+        <div><span class="title">Giám đốc</span><br/><span class="sub">(Ký, họ tên, đóng dấu)</span><br/><span class="name">WANG YONGFENG</span></div>
+        <div><span class="title">Kế toán trưởng</span><br/><span class="sub">(Ký, họ tên)</span><br/><span class="name">Đặng Thị Yến</span></div>
+        <div><span class="title">Người nhận hàng</span><br/><span class="sub">(Ký, họ tên)</span></div>
+        <div><span class="title">Người lập phiếu</span><br/><span class="sub">(Ký, họ tên)</span></div>
+        <div><span class="title">Thủ kho</span><br/><span class="sub">(Ký, họ tên)</span></div>
+    </div>
+</body>
+</html>

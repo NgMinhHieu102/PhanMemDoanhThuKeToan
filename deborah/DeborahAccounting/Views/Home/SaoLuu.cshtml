@@ -1,0 +1,46 @@
+@{ ViewData["Title"] = "Sao lưu dữ liệu"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+
+<div class="dm-container">
+    <div class="backup-panel">
+        <h3 class="backup-title">SAO LƯU</h3>
+        <div class="backup-body">
+            <div class="mb-3 row align-items-center">
+                <label class="col-sm-4 col-form-label fw-bold" style="font-size:15px;">Đường dẫn sao lưu</label>
+                <div class="col-sm-6">
+                    <input class="form-control" id="fBackupPath" readonly />
+                </div>
+                <div class="col-sm-2">
+                    <button class="btn btn-outline-secondary w-100" onclick="document.getElementById('filePickerBackup').click()">Chọn</button>
+                    <input type="file" id="filePickerBackup" style="display:none" nwdirectory webkitdirectory
+                           onchange="document.getElementById('fBackupPath').value = this.files.length ? this.files[0].webkitRelativePath.split('/')[0] : ''" />
+                </div>
+            </div>
+        </div>
+        <div class="backup-actions">
+            <button class="btn btn-success btn-lg" onclick="doBackup()"><i class="bi bi-download"></i> Sao lưu</button>
+            <a class="btn btn-secondary btn-lg" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle"></i> Thoát</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .backup-panel { padding: 30px 40px; text-align: center; }
+    .backup-title {
+        color: #1b4f72; font-weight: 900; font-size: 28px;
+        margin-bottom: 30px; letter-spacing: 2px;
+    }
+    .backup-body { max-width: 600px; margin: 0 auto 30px; text-align: left; }
+    .backup-actions { display: flex; justify-content: center; gap: 20px; }
+    .backup-actions .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 30px; font-size: 15px; font-weight: 600; }
+</style>
+
+@section Scripts {
+<script>
+function doBackup() {
+    let path = document.getElementById('fBackupPath').value;
+    if (!path) { alert('Vui lòng chọn đường dẫn sao lưu'); return; }
+    alert('Chức năng sao lưu dữ liệu đang được phát triển.\nĐường dẫn: ' + path);
+}
+</script>
+}

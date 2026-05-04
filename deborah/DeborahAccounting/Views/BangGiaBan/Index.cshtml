@@ -1,0 +1,37 @@
+@model List<DeborahAccounting.Models.BangGiaBan>
+@{ ViewData["Title"] = "Cập nhật giá bán"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+<div class="dm-container">
+    <div class="dm-toolbar">
+        <button class="btn btn-add" onclick="showAdd()"><i class="bi bi-plus-circle"></i> Thêm</button>
+        <button class="btn btn-delete" onclick="doDelete()"><i class="bi bi-trash"></i> Xóa</button>
+        <button class="btn btn-reload" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
+        <a class="btn btn-close-form" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle-fill"></i> Thoát</a>
+    </div>
+    <div class="dm-table-wrap">
+        <table class="dm-grid"><thead><tr><th style="width:24px"></th><th>Mã HH</th><th>Tên hàng hóa</th><th>Ngày hiệu lực</th><th style="text-align:right">Giá bán</th></tr></thead>
+        <tbody id="gridBody">
+            @foreach(var i in Model){<tr data-mahh="@i.MaHH" data-ngay="@i.NgayHLuc.ToString("yyyy-MM-dd")" onclick="selectRow(this)"><td class="row-indicator">▶</td><td>@i.MaHH</td><td>@i.HangHoa?.TenHH</td><td>@i.NgayHLuc.ToString("dd/MM/yyyy")</td><td style="text-align:right">@i.GiaBan.ToString("N0")</td></tr>}
+            <tr class="new-row"><td class="row-indicator"><span class="required-star">✱</span></td><td></td><td></td><td></td><td></td></tr>
+        </tbody></table>
+    </div>
+</div>
+<div class="modal fade dm-modal" id="formModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Thêm giá bán</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Mã HH</label><div class="col-sm-5">
+            <select class="form-select" id="fMaHH">@foreach(var h in (List<DeborahAccounting.Models.DMHH>)ViewBag.DSHH){<option value="@h.MaHH">@h.MaHH - @h.TenHH</option>}</select></div></div>
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Ngày hiệu lực</label><div class="col-sm-5"><input class="form-control" id="fNgay" type="date"/></div></div>
+        <div class="mb-2 row align-items-center"><label class="col-sm-4 col-form-label fw-bold">Giá bán</label><div class="col-sm-5"><input class="form-control" id="fGiaBan" type="number"/></div></div>
+    </div>
+    <div class="modal-footer justify-content-end gap-2"><button class="btn btn-primary" onclick="save()"><i class="bi bi-floppy"></i> Lưu</button><button class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-x-circle-fill"></i> Hủy</button></div>
+</div></div></div>
+@section Scripts {
+<script>
+let selMaHH=null,selNgay=null;
+function selectRow(tr){document.querySelectorAll('#gridBody tr').forEach(r=>r.classList.remove('selected'));tr.classList.add('selected');selMaHH=tr.dataset.mahh;selNgay=tr.dataset.ngay}
+function showAdd(){['fGiaBan'].forEach(id=>document.getElementById(id).value='');document.getElementById('fNgay').value='';new bootstrap.Modal(document.getElementById('formModal')).show()}
+function save(){let data=`maHH=${document.getElementById('fMaHH').value}&ngayHLuc=${document.getElementById('fNgay').value}&giaBan=${document.getElementById('fGiaBan').value}`;fetch('@Url.Action("Create")',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:data}).then(r=>r.json()).then(r=>{if(r.success){bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();reload()}else alert(r.message)})}
+function doDelete(){if(!selMaHH){alert('Chọn một dòng');return}if(!confirm('Xác nhận xóa?'))return;fetch('@Url.Action("Delete")',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`maHH=${selMaHH}&ngayHLuc=${selNgay}`}).then(r=>r.json()).then(r=>{if(r.success)reload();else alert(r.message)})}
+function reload(){location.reload()}
+</script>}

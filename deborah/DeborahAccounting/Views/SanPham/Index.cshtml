@@ -1,0 +1,97 @@
+@model List<DeborahAccounting.Models.SanPham>
+@{ ViewData["Title"] = "Danh mục sản phẩm"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+
+<div class="dm-container">
+    <div class="dm-toolbar">
+        <button class="btn btn-add" onclick="showAdd()"><i class="bi bi-plus-circle"></i> Thêm</button>
+        <button class="btn btn-edit" onclick="showEdit()"><i class="bi bi-pencil"></i> Sửa</button>
+        <button class="btn btn-delete" onclick="doDelete()"><i class="bi bi-trash"></i> Xóa</button>
+        <button class="btn btn-reload" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Tải lại dữ liệu</button>
+        <button class="btn btn-print"><i class="bi bi-printer"></i> In</button>
+        <a class="btn btn-close-form" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle-fill"></i> Thoát</a>
+    </div>
+    <div class="dm-table-wrap">
+        <table class="dm-grid">
+            <thead><tr><th style="width:24px"></th><th>Mã sản phẩm</th><th>Tên sản phẩm</th></tr></thead>
+            <tbody id="gridBody">
+                @foreach (var item in Model)
+                {
+                    <tr data-id="@item.MaSP" onclick="selectRow(this)">
+                        <td class="row-indicator">▶</td>
+                        <td>@item.MaSP</td>
+                        <td>@item.TenSP</td>
+                    </tr>
+                }
+                <tr class="new-row"><td class="row-indicator"><span class="required-star">✱</span></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Cập nhật danh mục sản phẩm -->
+<div class="modal fade dm-modal" id="formModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Cập nhật danh mục sản phẩm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editMode" />
+                <div class="mb-3 row align-items-center">
+                    <label class="col-sm-4 col-form-label fw-bold">Mã sản phẩm</label>
+                    <div class="col-sm-5"><input class="form-control" id="fMaSP" maxlength="6" /></div>
+                </div>
+                <div class="mb-3 row align-items-center">
+                    <label class="col-sm-4 col-form-label fw-bold">Tên sản phẩm</label>
+                    <div class="col-sm-8"><input class="form-control" id="fTenSP" maxlength="60" /></div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-end gap-2">
+                <button class="btn btn-primary" onclick="save()"><i class="bi bi-floppy"></i> Lưu</button>
+                <button class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-x-circle-fill"></i> Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let selectedId = null;
+function selectRow(tr) { document.querySelectorAll('#gridBody tr').forEach(r => r.classList.remove('selected')); tr.classList.add('selected'); selectedId = tr.dataset.id; }
+function showAdd() {
+    document.getElementById('editMode').value = 'add';
+    document.getElementById('modalTitle').textContent = 'Thêm sản phẩm';
+    document.getElementById('fMaSP').value = ''; document.getElementById('fMaSP').disabled = false;
+    document.getElementById('fTenSP').value = '';
+    new bootstrap.Modal(document.getElementById('formModal')).show();
+}
+function showEdit() {
+    if (!selectedId) { alert('Chọn một dòng để sửa'); return; }
+    let tr = document.querySelector(`tr[data-id="${selectedId}"]`);
+    document.getElementById('editMode').value = 'edit';
+    document.getElementById('modalTitle').textContent = 'Cập nhật danh mục sản phẩm';
+    document.getElementById('fMaSP').value = selectedId; document.getElementById('fMaSP').disabled = true;
+    document.getElementById('fTenSP').value = tr.cells[2].textContent;
+    new bootstrap.Modal(document.getElementById('formModal')).show();
+}
+function save() {
+    let mode = document.getElementById('editMode').value;
+    let url = mode === 'add' ? '@Url.Action("Create")' : '@Url.Action("Edit")';
+    let data = { MaSP: document.getElementById('fMaSP').value, TenSP: document.getElementById('fTenSP').value };
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+    .then(r => r.json()).then(r => {
+        if (r.success) { bootstrap.Modal.getInstance(document.getElementById('formModal')).hide(); reload(); }
+        else alert(r.message);
+    });
+}
+function doDelete() {
+    if (!selectedId) { alert('Chọn một dòng để xóa'); return; }
+    if (!confirm('Xác nhận xóa?')) return;
+    fetch('@Url.Action("Delete")', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(selectedId) })
+    .then(r => r.json()).then(r => { if (r.success) reload(); else alert(r.message); });
+}
+function reload() { location.reload(); }
+</script>
+}

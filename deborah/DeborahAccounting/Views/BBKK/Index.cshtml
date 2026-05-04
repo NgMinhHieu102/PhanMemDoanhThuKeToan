@@ -1,0 +1,111 @@
+@model List<DeborahAccounting.Models.BBKK>
+@{ ViewData["Title"] = "Danh sách Biên bản kiểm kê"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+
+<div class="dm-container">
+    <div class="dm-toolbar">
+        <button class="btn btn-add" onclick="showAdd()"><i class="bi bi-plus-circle"></i> Thêm</button>
+        <button class="btn btn-edit" onclick="showEdit()"><i class="bi bi-pencil"></i> Sửa</button>
+        <button class="btn btn-delete" onclick="doDelete()"><i class="bi bi-trash"></i> Xóa</button>
+        <button class="btn btn-reload" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Tải lại dữ liệu</button>
+        <button class="btn btn-print"><i class="bi bi-printer"></i> In</button>
+        <a class="btn btn-close-form" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle-fill"></i> Thoát</a>
+    </div>
+    <div class="dm-table-wrap">
+        <table class="dm-grid">
+            <thead><tr><th style="width:24px"></th><th>Số chứng từ</th><th>Ngày chứng từ</th><th>Mã Kho</th></tr></thead>
+            <tbody id="gridBody">
+                @foreach (var b in Model)
+                {
+                    <tr data-id="@b.SoCT" onclick="selectRow(this)">
+                        <td class="row-indicator">▶</td>
+                        <td>@b.SoCT</td>
+                        <td>@b.NgayCT.ToString("M/d/yyyy")</td>
+                        <td>@b.MaKho</td>
+                    </tr>
+                }
+                <tr class="new-row"><td class="row-indicator"><span class="required-star">✱</span></td><td></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade dm-modal" id="formModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="modalTitle">Cập nhật Biên bản kiểm kê</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" style="font-size:13px;">
+                <input type="hidden" id="editMode" />
+                <div class="row align-items-center mb-2">
+                    <label class="col-sm-3 fw-bold">Số chứng từ</label>
+                    <div class="col-sm-3"><input class="form-control form-control-sm" id="fSoCT" maxlength="6" /></div>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <label class="col-sm-3 fw-bold">Ngày chứng từ</label>
+                    <div class="col-sm-3"><input class="form-control form-control-sm" id="fNgayCT" type="date" /></div>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <label class="col-sm-3 fw-bold">Mã Kho</label>
+                    <div class="col-sm-3">
+                        <select class="form-select form-select-sm" id="fMaKho">
+                            <option value=""></option>
+                            @foreach (var k in (List<DeborahAccounting.Models.DMKho>)ViewBag.DSKho)
+                            { <option value="@k.MaKho">@k.MaKho</option> }
+                        </select>
+                    </div>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <label class="col-sm-3 fw-bold">Người KK 1</label>
+                    <div class="col-sm-5"><input class="form-control form-control-sm" id="fNKK1" maxlength="60" /></div>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <label class="col-sm-3 fw-bold">Người KK 2</label>
+                    <div class="col-sm-5"><input class="form-control form-control-sm" id="fNKK2" maxlength="60" /></div>
+                </div>
+                <div class="row align-items-center mb-2">
+                    <label class="col-sm-3 fw-bold">Người KK 3</label>
+                    <div class="col-sm-5"><input class="form-control form-control-sm" id="fNKK3" maxlength="60" /></div>
+                </div>
+                <div class="dm-table-wrap" style="max-height:200px;">
+                    <table class="dm-grid">
+                        <thead><tr><th>Mã VT</th><th>Tên VT</th><th>SL Kiểm kê</th><th>Lý do</th><th style="width:30px"></th></tr></thead>
+                        <tbody id="ctBody"></tbody>
+                    </table>
+                </div>
+                <button class="btn btn-sm btn-outline-primary mt-2" onclick="addCTRow()"><i class="bi bi-plus"></i> Thêm dòng</button>
+            </div>
+            <div class="modal-footer justify-content-end gap-2">
+                <button class="btn btn-primary" onclick="save()"><i class="bi bi-floppy"></i> Lưu</button>
+                <button class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-x-circle-fill"></i> Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const dsVT = @Html.Raw(Json.Serialize(ViewBag.DSVT));
+let selectedId = null;
+function selectRow(tr) { document.querySelectorAll('#gridBody tr').forEach(r=>r.classList.remove('selected')); tr.classList.add('selected'); selectedId=tr.dataset.id; }
+function vtOpts() { return dsVT.map(v=>`<option value="${v.maVT}">${v.maVT}</option>`).join(''); }
+function addCTRow(data) {
+    let tr=document.createElement('tr');
+    tr.innerHTML=`<td><select class="form-select form-select-sm ct-mavt" onchange="let v=dsVT.find(x=>x.maVT===this.value);this.closest('tr').querySelector('.ct-tenvt').value=v?.tenVT||''"><option value=""></option>${vtOpts()}</select></td>
+    <td><input class="form-control form-control-sm ct-tenvt" readonly /></td>
+    <td><input class="form-control form-control-sm ct-sl text-end" type="number" value="0" /></td>
+    <td><input class="form-control form-control-sm ct-lydo" /></td>
+    <td><button class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()"><i class="bi bi-trash"></i></button></td>`;
+    document.getElementById('ctBody').appendChild(tr);
+    if(data){tr.querySelector('.ct-mavt').value=data.maVT||'';let v=dsVT.find(x=>x.maVT===data.maVT);tr.querySelector('.ct-tenvt').value=v?.tenVT||'';tr.querySelector('.ct-sl').value=data.soLuongKiemKe;tr.querySelector('.ct-lydo').value=data.lyDo||'';}
+}
+function clearForm(){['fSoCT','fNKK1','fNKK2','fNKK3'].forEach(id=>document.getElementById(id).value='');document.getElementById('fNgayCT').value=new Date().toISOString().split('T')[0];document.getElementById('fMaKho').value='';document.getElementById('ctBody').innerHTML='';}
+function showAdd(){document.getElementById('editMode').value='add';document.getElementById('modalTitle').textContent='Thêm Biên bản kiểm kê';clearForm();document.getElementById('fSoCT').disabled=false;addCTRow();new bootstrap.Modal(document.getElementById('formModal')).show();}
+function showEdit(){if(!selectedId){alert('Chọn một dòng để sửa');return;}document.getElementById('editMode').value='edit';document.getElementById('modalTitle').textContent='Cập nhật Biên bản kiểm kê';clearForm();document.getElementById('fSoCT').disabled=true;document.getElementById('fSoCT').value=selectedId;
+    fetch(`/BBKK/GetDetail?id=${selectedId}`).then(r=>r.json()).then(d=>{document.getElementById('fNgayCT').value=d.ngayCT?.split('T')[0]||'';document.getElementById('fMaKho').value=d.maKho||'';document.getElementById('fNKK1').value=d.nguoiKK1||'';document.getElementById('fNKK2').value=d.nguoiKK2||'';document.getElementById('fNKK3').value=d.nguoiKK3||'';if(d.chiTietBBKK)d.chiTietBBKK.forEach(ct=>addCTRow(ct));if(!d.chiTietBBKK||d.chiTietBBKK.length===0)addCTRow();});
+    new bootstrap.Modal(document.getElementById('formModal')).show();}
+function save(){let mode=document.getElementById('editMode').value;let url=mode==='add'?'@Url.Action("Create")':'@Url.Action("Edit")';let ct=[];document.querySelectorAll('#ctBody tr').forEach(tr=>{let m=tr.querySelector('.ct-mavt')?.value;if(!m)return;ct.push({MaVT:m,SoLuongKiemKe:parseFloat(tr.querySelector('.ct-sl')?.value)||0,LyDo:tr.querySelector('.ct-lydo')?.value||null});});
+    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({SoCT:document.getElementById('fSoCT').value,NgayCT:document.getElementById('fNgayCT').value,MaKho:document.getElementById('fMaKho').value,NguoiKK1:document.getElementById('fNKK1').value,NguoiKK2:document.getElementById('fNKK2').value,NguoiKK3:document.getElementById('fNKK3').value,ChiTiet:ct})}).then(r=>r.json()).then(r=>{if(r.success){bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();reload();}else alert(r.message);});}
+function doDelete(){if(!selectedId){alert('Chọn một dòng để xóa');return;}if(!confirm('Xác nhận xóa?'))return;fetch('@Url.Action("Delete")',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(selectedId)}).then(r=>r.json()).then(r=>{if(r.success)reload();else alert(r.message);});}
+function reload(){location.reload();}
+</script>
+}

@@ -1,0 +1,196 @@
+@model List<DeborahAccounting.Models.NguoiDung>
+@{ ViewData["Title"] = "Danh mục người dùng"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+
+<div class="dm-container">
+    <div class="dm-toolbar">
+        <button class="btn btn-add" onclick="showAdd()"><i class="bi bi-plus-circle"></i> Thêm</button>
+        <button class="btn btn-edit" onclick="showEdit()"><i class="bi bi-pencil"></i> Sửa</button>
+        <button class="btn btn-delete" onclick="doDelete()"><i class="bi bi-trash"></i> Xóa</button>
+        <button class="btn btn-reload" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Tải lại dữ liệu</button>
+        <button class="btn btn-print"><i class="bi bi-printer"></i> In</button>
+        <a class="btn btn-close-form" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle-fill"></i> Thoát</a>
+    </div>
+    <div class="dm-table-wrap">
+        <table class="dm-grid" id="gridTable">
+            <thead>
+                <tr>
+                    <th style="width:24px"></th>
+                    <th>Tên ĐN</th>
+                    <th>Họ tên người dùng</th>
+                    <th>Quyền</th>
+                </tr>
+            </thead>
+            <tbody id="gridBody">
+                @foreach (var item in Model)
+                {
+                    <tr data-id="@item.TenDN" data-quyen="@item.Quyen" onclick="selectRow(this)">
+                        <td class="row-indicator">▶</td>
+                        <td>@item.TenDN</td>
+                        <td>@item.TenNguoiDung</td>
+                        <td>@(item.Quyen == 1 ? "Admin" : "Kế toán")</td>
+                    </tr>
+                }
+                <tr class="new-row">
+                    <td class="row-indicator"><span class="required-star">✱</span></td>
+                    <td></td><td></td><td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Cập nhật người dùng -->
+<div class="modal fade dm-modal" id="formModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Cập nhật người dùng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editMode" />
+                <div class="mb-3 row align-items-center">
+                    <label class="col-sm-5 col-form-label fw-bold">Tên ĐN:</label>
+                    <div class="col-sm-7">
+                        <input class="form-control" id="fTenDN" maxlength="50" />
+                    </div>
+                </div>
+                <div class="mb-3 row align-items-center">
+                    <label class="col-sm-5 col-form-label fw-bold">Mật khẩu:</label>
+                    <div class="col-sm-7">
+                        <input class="form-control" id="fMatKhau" type="password" maxlength="20" />
+                    </div>
+                </div>
+                <div class="mb-3 row align-items-center">
+                    <label class="col-sm-5 col-form-label fw-bold">Xác nhận mật khẩu:</label>
+                    <div class="col-sm-7">
+                        <input class="form-control" id="fXacNhanMK" type="password" maxlength="20" />
+                    </div>
+                </div>
+                <div class="mb-3 row align-items-center">
+                    <label class="col-sm-5 col-form-label fw-bold">Họ tên người dùng:</label>
+                    <div class="col-sm-7">
+                        <input class="form-control" id="fTenNguoiDung" maxlength="60" />
+                    </div>
+                </div>
+                <div class="mb-3 row align-items-center">
+                    <label class="col-sm-5 col-form-label fw-bold">Quyền:</label>
+                    <div class="col-sm-7">
+                        <select class="form-select" id="fQuyen">
+                            <option value="1">Admin</option>
+                            <option value="2">Kế toán</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-end gap-2">
+                <button class="btn btn-primary" onclick="save()">
+                    <i class="bi bi-floppy"></i> Lưu
+                </button>
+                <button class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle-fill"></i> Hủy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let selectedId = null;
+
+function selectRow(tr) {
+    document.querySelectorAll('#gridBody tr').forEach(r => r.classList.remove('selected'));
+    tr.classList.add('selected');
+    selectedId = tr.dataset.id;
+}
+
+function showAdd() {
+    document.getElementById('editMode').value = 'add';
+    document.getElementById('modalTitle').textContent = 'Thêm người dùng';
+    document.getElementById('fTenDN').value = '';
+    document.getElementById('fTenDN').disabled = false;
+    document.getElementById('fMatKhau').value = '';
+    document.getElementById('fXacNhanMK').value = '';
+    document.getElementById('fTenNguoiDung').value = '';
+    document.getElementById('fQuyen').value = '1';
+    new bootstrap.Modal(document.getElementById('formModal')).show();
+}
+
+function showEdit() {
+    if (!selectedId) { alert('Chọn một dòng để sửa'); return; }
+    let tr = document.querySelector(`tr[data-id="${selectedId}"]`);
+    document.getElementById('editMode').value = 'edit';
+    document.getElementById('modalTitle').textContent = 'Cập nhật người dùng';
+    document.getElementById('fTenDN').value = selectedId;
+    document.getElementById('fTenDN').disabled = true;
+    document.getElementById('fMatKhau').value = '';
+    document.getElementById('fXacNhanMK').value = '';
+    document.getElementById('fTenNguoiDung').value = tr.cells[2].textContent;
+    document.getElementById('fQuyen').value = tr.dataset.quyen;
+    new bootstrap.Modal(document.getElementById('formModal')).show();
+}
+
+function save() {
+    let mk = document.getElementById('fMatKhau').value;
+    let xnmk = document.getElementById('fXacNhanMK').value;
+
+    if (mk !== xnmk) {
+        alert('Mật khẩu xác nhận không khớp!');
+        return;
+    }
+
+    let mode = document.getElementById('editMode').value;
+
+    if (mode === 'add' && !document.getElementById('fTenDN').value.trim()) {
+        alert('Vui lòng nhập tên đăng nhập');
+        return;
+    }
+    if (mode === 'add' && !mk) {
+        alert('Vui lòng nhập mật khẩu');
+        return;
+    }
+
+    let url = mode === 'add' ? '@Url.Action("Create")' : '@Url.Action("Edit")';
+    let data = {
+        TenDN: document.getElementById('fTenDN').value,
+        MatKhau: mk,
+        TenNguoiDung: document.getElementById('fTenNguoiDung').value,
+        Quyen: parseInt(document.getElementById('fQuyen').value)
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+        },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(r => {
+        if (r.success) {
+            bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
+            reload();
+        } else {
+            alert(r.message);
+        }
+    });
+}
+
+function doDelete() {
+    if (!selectedId) { alert('Chọn một dòng để xóa'); return; }
+    if (!confirm('Xác nhận xóa người dùng "' + selectedId + '"?')) return;
+    fetch('@Url.Action("Delete")', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(selectedId)
+    })
+    .then(r => r.json())
+    .then(r => { if (r.success) reload(); else alert(r.message); });
+}
+
+function reload() { location.reload(); }
+</script>
+}

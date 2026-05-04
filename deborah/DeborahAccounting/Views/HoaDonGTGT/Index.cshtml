@@ -1,0 +1,279 @@
+@model List<DeborahAccounting.Models.HDHH>
+@{ ViewData["Title"] = "Hóa đơn GTGT"; }
+<link rel="stylesheet" href="~/css/danhmuc.css" />
+
+<div class="dm-container">
+    <div class="dm-toolbar">
+        <button class="btn btn-add" onclick="showAdd()"><i class="bi bi-plus-circle"></i> Thêm</button>
+        <button class="btn btn-edit" onclick="showEdit()"><i class="bi bi-pencil"></i> Sửa</button>
+        <button class="btn btn-delete" onclick="doDelete()"><i class="bi bi-trash"></i> Xóa</button>
+        <button class="btn btn-reload" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Tải lại</button>
+        <button class="btn btn-print" onclick="doPrint()"><i class="bi bi-printer"></i> In</button>
+        <a class="btn btn-close-form" asp-controller="Home" asp-action="Index"><i class="bi bi-x-circle-fill"></i> Thoát</a>
+    </div>
+    <div class="dm-table-wrap">
+        <table class="dm-grid" id="gridTable">
+            <thead><tr>
+                <th style="width:24px"></th><th>Số hóa đơn</th><th>Ngày lập</th>
+                <th>Khách hàng</th><th>Diễn giải</th><th>HT Thanh toán</th><th style="text-align:right">Tổng tiền</th>
+            </tr></thead>
+            <tbody id="gridBody">
+                @foreach (var h in Model)
+                {
+                    <tr data-id="@h.SoHD" onclick="selectRow(this)">
+                        <td class="row-indicator">▶</td>
+                        <td>@h.SoHD</td><td>@h.NgayHD.ToString("dd/MM/yyyy")</td>
+                        <td>@h.KhachHang?.TenKH</td><td>@h.DienGiai</td><td>@h.HTTT</td>
+                        <td style="text-align:right">@h.TienThanhToan.ToString("N0")</td>
+                    </tr>
+                }
+                <tr class="new-row"><td class="row-indicator"><span class="required-star">✱</span></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Cập nhật Hóa đơn GTGT -->
+<div class="modal fade dm-modal" id="formModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Cập nhật Hóa đơn GTGT</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="font-size:13px;">
+                <input type="hidden" id="editMode" />
+                <div class="row mb-2">
+                    <div class="col-md-6">
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">Số hóa đơn</label>
+                            <div class="col-sm-4"><input class="form-control form-control-sm" id="fSoHD" maxlength="10" /></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">Mã KH</label>
+                            <div class="col-sm-3">
+                                <select class="form-select form-select-sm" id="fMaKH" onchange="onKHChange()">
+                                    <option value=""></option>
+                                    @foreach (var k in (List<DeborahAccounting.Models.DMKH>)ViewBag.DSKH)
+                                    { <option value="@k.MaKH" data-ten="@k.TenKH" data-dc="@k.DiaChi" data-mst="@k.MaSoThue">@k.MaKH</option> }
+                                </select>
+                            </div>
+                            <div class="col-sm-5"><input class="form-control form-control-sm" id="fTenKH" readonly /></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">Địa chỉ</label>
+                            <div class="col-sm-8"><input class="form-control form-control-sm" id="fDiaChi" readonly /></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">Mã số thuế</label>
+                            <div class="col-sm-8"><input class="form-control form-control-sm" id="fMaSoThue" readonly /></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">HT Thanh toán</label>
+                            <div class="col-sm-8"><input class="form-control form-control-sm" id="fHTTT" /></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">Diễn giải</label>
+                            <div class="col-sm-8"><input class="form-control form-control-sm" id="fDienGiai" /></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">Ngày lập</label>
+                            <div class="col-sm-5"><input class="form-control form-control-sm" id="fNgayHD" type="date" /></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">TK ghi nợ</label>
+                            <div class="col-sm-4"><select class="form-select form-select-sm" id="fTKNo"><option value=""></option>
+                                @foreach(var t in (List<DeborahAccounting.Models.DMTK>)ViewBag.DSTK){<option value="@t.MaTK">@t.MaTK</option>}</select></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">TK ghi có doanh thu</label>
+                            <div class="col-sm-4"><select class="form-select form-select-sm" id="fTKCoDT"><option value=""></option>
+                                @foreach(var t in (List<DeborahAccounting.Models.DMTK>)ViewBag.DSTK){<option value="@t.MaTK">@t.MaTK</option>}</select></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">TK ghi có Thuế</label>
+                            <div class="col-sm-4"><select class="form-select form-select-sm" id="fTKCoThue"><option value=""></option>
+                                @foreach(var t in (List<DeborahAccounting.Models.DMTK>)ViewBag.DSTK){<option value="@t.MaTK">@t.MaTK</option>}</select></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">Thuế suất(%)</label>
+                            <div class="col-sm-3"><input class="form-control form-control-sm" id="fThueSuat" type="number" value="10" /></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">TK Chiết khấu</label>
+                            <div class="col-sm-4"><select class="form-select form-select-sm" id="fTKCK"><option value=""></option>
+                                @foreach(var t in (List<DeborahAccounting.Models.DMTK>)ViewBag.DSTK){<option value="@t.MaTK">@t.MaTK</option>}</select></div>
+                        </div>
+                        <div class="row align-items-center mb-2">
+                            <label class="col-sm-4 fw-bold">Tỷ lệ Chiết khấu</label>
+                            <div class="col-sm-3"><input class="form-control form-control-sm" id="fTyLeCK" type="number" value="0" /></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chi tiết hàng hóa -->
+                <div style="overflow:auto; max-height:200px;">
+                    <table class="dm-grid" id="ctTable" style="font-size:12px">
+                        <thead><tr><th>Mã hàng hóa</th><th>Tên HH</th><th>DVT</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th><th style="width:30px"></th></tr></thead>
+                        <tbody id="ctBody"></tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addCTRow()"><i class="bi bi-plus"></i> Thêm dòng</button>
+
+                <div class="row mt-3">
+                    <div class="col-md-6"></div>
+                    <div class="col-md-6">
+                        <div class="row mb-1"><label class="col-sm-5 fw-bold">Cộng tiền hàng:</label><div class="col-sm-7"><input class="form-control form-control-sm" id="fCongTienHang" readonly /></div></div>
+                        <div class="row mb-1"><label class="col-sm-5 fw-bold">Thuế GTGT:</label><div class="col-sm-7"><input class="form-control form-control-sm" id="fTienThue" readonly /></div></div>
+                        <div class="row mb-1"><label class="col-sm-5 fw-bold">Chiết khấu:</label><div class="col-sm-7"><input class="form-control form-control-sm" id="fTienCK" readonly /></div></div>
+                        <div class="row mb-1"><label class="col-sm-5 fw-bold">Tổng tiền:</label><div class="col-sm-7"><input class="form-control form-control-sm" id="fTongTien" readonly style="font-weight:700" /></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-end gap-2">
+                <button class="btn btn-primary" onclick="save()"><i class="bi bi-floppy"></i> Lưu</button>
+                <button class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-x-circle-fill"></i> Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let selectedId = null;
+const dsHH = [@Html.Raw(string.Join(",", ((List<DeborahAccounting.Models.DMHH>)ViewBag.DSHH).Select(h => $"{{maHH:'{h.MaHH}',tenHH:'{h.TenHH?.Replace("'","\\'")}',dvt:'{h.Dvt}'}}")))];
+
+function selectRow(tr) { document.querySelectorAll('#gridBody tr').forEach(r => r.classList.remove('selected')); tr.classList.add('selected'); selectedId = tr.dataset.id; }
+
+function onKHChange() {
+    let sel = document.getElementById('fMaKH');
+    let opt = sel.options[sel.selectedIndex];
+    document.getElementById('fTenKH').value = opt.dataset.ten || '';
+    document.getElementById('fDiaChi').value = opt.dataset.dc || '';
+    document.getElementById('fMaSoThue').value = opt.dataset.mst || '';
+}
+
+function addCTRow(data) {
+    let opts = dsHH.map(h => `<option value="${h.maHH}">${h.maHH}</option>`).join('');
+    let tr = document.createElement('tr');
+    tr.innerHTML = `<td><select class="form-select form-select-sm" onchange="onHHChange(this)">${'<option></option>'+opts}</select></td>
+        <td class="ct-ten"></td><td class="ct-dvt"></td>
+        <td><input class="form-control form-control-sm" type="number" value="${data?.soLuong||''}" onchange="calcRow(this)" /></td>
+        <td><input class="form-control form-control-sm" type="number" value="${data?.donGia||''}" onchange="calcRow(this)" /></td>
+        <td class="ct-tt" style="text-align:right"></td>
+        <td><button class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove();calcTotal()">×</button></td>`;
+    document.getElementById('ctBody').appendChild(tr);
+    if (data) {
+        tr.querySelector('select').value = data.maHH;
+        onHHChange(tr.querySelector('select'));
+        calcRow(tr.querySelector('td:nth-child(4) input'));
+    }
+}
+
+function onHHChange(sel) {
+    let tr = sel.closest('tr');
+    let hh = dsHH.find(h => h.maHH === sel.value);
+    tr.querySelector('.ct-ten').textContent = hh?.tenHH || '';
+    tr.querySelector('.ct-dvt').textContent = hh?.dvt || '';
+}
+
+function calcRow(inp) {
+    let tr = inp.closest('tr');
+    let sl = parseFloat(tr.querySelector('td:nth-child(4) input').value) || 0;
+    let dg = parseFloat(tr.querySelector('td:nth-child(5) input').value) || 0;
+    tr.querySelector('.ct-tt').textContent = (sl * dg).toLocaleString('vi-VN');
+    calcTotal();
+}
+
+function calcTotal() {
+    let rows = document.querySelectorAll('#ctBody tr');
+    let tong = 0;
+    rows.forEach(tr => {
+        let sl = parseFloat(tr.querySelector('td:nth-child(4) input')?.value) || 0;
+        let dg = parseFloat(tr.querySelector('td:nth-child(5) input')?.value) || 0;
+        tong += sl * dg;
+    });
+    let thue = Math.round(tong * (parseFloat(document.getElementById('fThueSuat').value) || 0) / 100);
+    let ck = Math.round(tong * (parseFloat(document.getElementById('fTyLeCK').value) || 0) / 100);
+    document.getElementById('fCongTienHang').value = tong.toLocaleString('vi-VN');
+    document.getElementById('fTienThue').value = thue.toLocaleString('vi-VN');
+    document.getElementById('fTienCK').value = ck.toLocaleString('vi-VN');
+    document.getElementById('fTongTien').value = (tong + thue - ck).toLocaleString('vi-VN');
+}
+
+document.getElementById('fThueSuat').addEventListener('change', calcTotal);
+document.getElementById('fTyLeCK').addEventListener('change', calcTotal);
+
+function showAdd() {
+    document.getElementById('editMode').value = 'add';
+    document.getElementById('modalTitle').textContent = 'Cập nhật Hóa đơn GTGT';
+    document.getElementById('fSoHD').value = ''; document.getElementById('fSoHD').disabled = false;
+    ['fNgayHD','fTenKH','fDiaChi','fMaSoThue','fHTTT','fDienGiai','fTKNo','fTKCoDT','fTKCoThue','fTKCK'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fMaKH').value = '';
+    document.getElementById('fThueSuat').value = '10'; document.getElementById('fTyLeCK').value = '0';
+    document.getElementById('ctBody').innerHTML = '';
+    ['fCongTienHang','fTienThue','fTienCK','fTongTien'].forEach(id => document.getElementById(id).value = '');
+    addCTRow();
+    new bootstrap.Modal(document.getElementById('formModal')).show();
+}
+
+function showEdit() {
+    if (!selectedId) { alert('Chọn một dòng để sửa'); return; }
+    fetch(`@Url.Action("GetDetail")?id=${selectedId}`).then(r => r.json()).then(d => {
+        if (!d.success) { alert('Không tìm thấy'); return; }
+        document.getElementById('editMode').value = 'edit';
+        document.getElementById('modalTitle').textContent = 'Cập nhật Hóa đơn GTGT';
+        document.getElementById('fSoHD').value = d.soHD; document.getElementById('fSoHD').disabled = true;
+        document.getElementById('fNgayHD').value = d.ngayHD;
+        document.getElementById('fMaKH').value = d.maKH; document.getElementById('fTenKH').value = d.tenKH || '';
+        document.getElementById('fDiaChi').value = d.diaChi || ''; document.getElementById('fMaSoThue').value = d.maSoThue || '';
+        document.getElementById('fHTTT').value = d.httt || ''; document.getElementById('fDienGiai').value = d.dienGiai || '';
+        document.getElementById('fTKNo').value = d.tkNoThanhToan || ''; document.getElementById('fTKCoDT').value = d.tkCoDoanhThu || '';
+        document.getElementById('fTKCoThue').value = d.tkCoThue || ''; document.getElementById('fTKCK').value = d.tkChietKhau || '';
+        document.getElementById('fThueSuat').value = d.thueSuat; document.getElementById('fTyLeCK').value = d.tyLeCK;
+        document.getElementById('ctBody').innerHTML = '';
+        d.chiTiet.forEach(ct => addCTRow(ct));
+        calcTotal();
+        new bootstrap.Modal(document.getElementById('formModal')).show();
+    });
+}
+
+function save() {
+    let mode = document.getElementById('editMode').value;
+    let chiTiet = [];
+    document.querySelectorAll('#ctBody tr').forEach(tr => {
+        let maHH = tr.querySelector('select')?.value;
+        let sl = parseFloat(tr.querySelector('td:nth-child(4) input')?.value) || 0;
+        let dg = parseFloat(tr.querySelector('td:nth-child(5) input')?.value) || 0;
+        if (maHH && sl > 0) chiTiet.push({ maHH, soLuong: sl, donGia: dg });
+    });
+    let data = {
+        soHD: document.getElementById('fSoHD').value, ngayHD: document.getElementById('fNgayHD').value,
+        maKH: document.getElementById('fMaKH').value, tkNoThanhToan: document.getElementById('fTKNo').value,
+        tkCoDoanhThu: document.getElementById('fTKCoDT').value, tkCoThue: document.getElementById('fTKCoThue').value,
+        tkChietKhau: document.getElementById('fTKCK').value, thueSuat: parseFloat(document.getElementById('fThueSuat').value) || 0,
+        tyLeCK: parseFloat(document.getElementById('fTyLeCK').value) || 0,
+        dienGiai: document.getElementById('fDienGiai').value, httt: document.getElementById('fHTTT').value, chiTiet
+    };
+    let url = mode === 'add' ? '@Url.Action("Create")' : '@Url.Action("Edit")';
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+    .then(r => r.json()).then(r => { if (r.success) { bootstrap.Modal.getInstance(document.getElementById('formModal')).hide(); reload(); } else alert(r.message); });
+}
+
+function doDelete() {
+    if (!selectedId) { alert('Chọn một dòng để xóa'); return; }
+    if (!confirm('Xác nhận xóa?')) return;
+    fetch('@Url.Action("Delete")', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(selectedId) })
+    .then(r => r.json()).then(r => { if (r.success) reload(); else alert(r.message); });
+}
+
+function doPrint() {
+    if (!selectedId) { alert('Chọn một dòng để in'); return; }
+    window.open(`@Url.Action("Print")?id=${selectedId}`, '_blank');
+}
+
+function reload() { location.reload(); }
+</script>
+}
